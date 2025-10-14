@@ -32,7 +32,7 @@ export function About({ onNavigate }: AboutProps) {
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-b from-purple-50/50 to-white">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-purple-50/50 to-background dark:from-black dark:to-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main About Content */}
         <div className="grid lg:grid-cols-2 gap-16 items-center mb-20">
@@ -85,7 +85,7 @@ export function About({ onNavigate }: AboutProps) {
             </div>
             
             {/* Floating Stats */}
-            <div className="absolute -top-8 -right-8 bg-white rounded-2xl p-6 shadow-xl">
+            <div className="absolute -top-8 -right-8 bg-card rounded-2xl p-6 shadow-xl">
               <div className="text-3xl font-bold text-primary mb-1">2+</div>
               <div className="text-sm text-muted-foreground">Years Crafting</div>
             </div>
@@ -95,7 +95,7 @@ export function About({ onNavigate }: AboutProps) {
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
           {features.map((feature, index) => (
-            <Card key={index} className="text-center border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-shadow">
+            <Card key={index} className="text-center border-0 shadow-lg bg-card hover:shadow-xl transition-shadow">
               <CardContent className="p-8">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-6">
                   <feature.icon className="h-8 w-8 text-primary" />

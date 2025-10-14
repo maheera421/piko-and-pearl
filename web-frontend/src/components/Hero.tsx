@@ -7,10 +7,10 @@ interface HeroProps {
 
 export function Hero({ onNavigate }: HeroProps) {
   return (
-    <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden bg-background">
       {/* Background with overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50">
-        <div className="absolute inset-0 bg-white/30"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 dark:from-black dark:via-black dark:to-black">
+        <div className="absolute inset-0 bg-white/30 dark:bg-black/0"></div>
       </div>
       
       {/* Content */}
@@ -72,7 +72,7 @@ export function Hero({ onNavigate }: HeroProps) {
               />
               
               {/* Floating elements */}
-              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
+              <div className="absolute top-4 right-4 bg-white/90 dark:bg-muted/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
                 <span className="text-sm font-medium text-foreground">New Collection ✨</span>
               </div>
               
@@ -82,8 +82,8 @@ export function Hero({ onNavigate }: HeroProps) {
             </div>
             
             {/* Decorative elements */}
-            <div className="absolute -top-4 -left-4 w-20 h-20 bg-pink-200 rounded-full opacity-60 blur-xl"></div>
-            <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-purple-200 rounded-full opacity-40 blur-2xl"></div>
+            <div className="absolute -top-4 -left-4 w-20 h-20 bg-pink-200 dark:bg-primary/30 rounded-full opacity-60 blur-xl"></div>
+            <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-purple-200 dark:bg-primary/20 rounded-full opacity-40 blur-2xl"></div>
           </div>
         </div>
       </div>

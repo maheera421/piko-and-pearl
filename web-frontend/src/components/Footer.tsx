@@ -21,8 +21,7 @@ export function Footer({ onNavigate }: FooterProps) {
       { name: "Bags", page: "bags" },
       { name: "Bag Charms", page: "charms" },
       { name: "Bandanas", page: "bandanas" },
-      { name: "Accessories", page: "accessories" },
-      { name: "Custom Orders", page: "contact" }
+      { name: "Accessories", page: "accessories" }
     ],
     support: [
       { name: "Contact Us", page: "contact" },
@@ -34,7 +33,7 @@ export function Footer({ onNavigate }: FooterProps) {
 
 
   return (
-    <footer className="bg-white border-t">
+    <footer className="bg-background border-t">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
         <div className="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">

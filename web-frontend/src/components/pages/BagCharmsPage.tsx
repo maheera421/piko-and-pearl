@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import { Badge } from "../ui/badge";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 import { Heart, ShoppingBag, Star, ArrowLeft, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
@@ -16,7 +15,6 @@ interface BagCharmsPageProps {
 export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
   const [sortBy, setSortBy] = useState("featured");
   const [priceFilter, setPriceFilter] = useState("all");
-  const [styleFilter, setStyleFilter] = useState("all");
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
 
@@ -30,7 +28,6 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
       category: 'Bag Charms',
       rating: charm.rating,
       reviews: charm.reviews,
-      badge: charm.badge,
       description: charm.description
     };
     
@@ -63,10 +60,7 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
       image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.8,
       reviews: 22,
-      badge: "New",
-      description: "Delicate butterfly design with pearl accents",
-      colors: ["Purple", "Pink", "Blue"],
-      style: "nature"
+      description: "Delicate butterfly design with pearl accents"
     },
     {
       id: 2,
@@ -76,10 +70,7 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
       image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.7,
       reviews: 18,
-      badge: "Sale",
-      description: "Elegant tassel charm in various colors",
-      colors: ["Gold", "Silver", "Rose Gold"],
-      style: "classic"
+      description: "Elegant tassel charm in various colors"
     },
     {
       id: 3,
@@ -89,10 +80,7 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
       image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.9,
       reviews: 25,
-      badge: "Bestseller",
-      description: "Cute mini flower perfect for any bag",
-      colors: ["Lavender", "White", "Yellow"],
-      style: "nature"
+      description: "Cute mini flower perfect for any bag"
     },
     {
       id: 4,
@@ -102,10 +90,7 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
       image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.6,
       reviews: 14,
-      badge: "Modern",
-      description: "Contemporary geometric design",
-      colors: ["Black", "Gray", "Beige"],
-      style: "modern"
+      description: "Contemporary geometric design"
     },
     {
       id: 5,
@@ -115,10 +100,7 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
       image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.8,
       reviews: 31,
-      badge: "Popular",
-      description: "Fluffy pom pom in vibrant colors",
-      colors: ["Pink", "Purple", "Mint"],
-      style: "playful"
+      description: "Fluffy pom pom in vibrant colors"
     },
     {
       id: 6,
@@ -128,10 +110,7 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
       image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.9,
       reviews: 19,
-      badge: "Cute",
-      description: "Sweet heart design with decorative stitching",
-      colors: ["Red", "Pink", "Purple"],
-      style: "cute"
+      description: "Sweet heart design with decorative stitching"
     }
   ];
 
@@ -153,11 +132,6 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
           break;
       }
     }
-
-    // Apply style filter
-    if (styleFilter !== "all") {
-      filteredCharms = filteredCharms.filter(charm => charm.style === styleFilter);
-    }
     
     // Apply sorting
     switch (sortBy) {
@@ -176,19 +150,10 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
 
   const charms = getFilteredAndSortedCharms();
 
-  const getBadgeVariant = (badge: string) => {
-    switch (badge) {
-      case "Sale": return "destructive";
-      case "New": return "secondary";
-      case "Bestseller": return "default";
-      default: return "outline";
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-40">
+      <div className="bg-white dark:bg-card border-b sticky top-0 z-40">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <Button 
@@ -206,32 +171,46 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
       </div>
 
       {/* Hero Section */}
-      <section className="py-12 bg-gradient-to-b from-purple-50/50 to-white">
+      <section className="py-12 bg-gradient-to-b from-purple-50/50 to-white dark:from-purple-950/20 dark:to-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Beautiful Bag Charms
+              Adorable Bag Charms
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Add personality to your bags with our handcrafted charms. Each piece is designed to complement your style.
+              Add a personal touch to your bags with our handcrafted charms. Each piece is designed to bring joy and personality to your accessories.
             </p>
           </div>
         </div>
       </section>
 
       {/* Filters and Sorting */}
-      <section className="py-6 bg-white border-b">
+      <section className="py-6 bg-white dark:bg-card border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
-                Filters
-              </Button>
+          <div className="flex flex-col lg:flex-row items-center justify-between space-y-4 lg:space-y-0">
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex items-center space-x-2">
+                <Filter className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">Filters:</span>
+              </div>
+              
+              <Select value={priceFilter} onValueChange={setPriceFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Price Range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Prices</SelectItem>
+                  <SelectItem value="under-700">Under Rs 700</SelectItem>
+                  <SelectItem value="700-900">Rs 700 - 900</SelectItem>
+                  <SelectItem value="over-900">Over Rs 900</SelectItem>
+                </SelectContent>
+              </Select>
+
               <span className="text-sm text-muted-foreground">
                 {charms.length} products
               </span>
             </div>
+            
             <div className="flex items-center space-x-2">
               <span className="text-sm text-muted-foreground">Sort by:</span>
               <Select value={sortBy} onValueChange={setSortBy}>
@@ -254,11 +233,11 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
       {/* Products Grid */}
       <section className="py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {charms.map((charm) => (
               <Card 
                 key={charm.id} 
-                className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white overflow-hidden"
+                className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white dark:bg-card overflow-hidden"
               >
                 <CardContent className="p-0">
                   <div className="relative overflow-hidden">
@@ -269,24 +248,17 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
                       onClick={() => onNavigate(`product-charms-${charm.id}`)}
                     />
                     
-                    <Badge 
-                      className="absolute top-3 left-3 shadow-sm" 
-                      variant={getBadgeVariant(charm.badge)}
-                    >
-                      {charm.badge}
-                    </Badge>
-                    
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white/90 h-9 w-9 rounded-full shadow-sm"
+                      className="absolute top-3 right-3 bg-white/80 dark:bg-black/50 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-black/70 h-9 w-9 rounded-full shadow-sm"
                       onClick={() => toggleWishlist(charm)}
                     >
                       <Heart 
                         className={`h-4 w-4 ${
                           isInWishlist(`charms-${charm.id}`) 
                             ? 'fill-red-500 text-red-500' 
-                            : 'text-gray-600'
+                            : 'text-gray-600 dark:text-gray-300'
                         }`} 
                       />
                     </Button>
@@ -311,7 +283,7 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
                             className={`h-4 w-4 ${
                               i < Math.floor(charm.rating)
                                 ? 'fill-yellow-400 text-yellow-400'
-                                : 'text-gray-300'
+                                : 'text-gray-300 dark:text-gray-600'
                             }`}
                           />
                         ))}
@@ -331,41 +303,25 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
                     <p className="text-sm text-muted-foreground mb-3">
                       {charm.description}
                     </p>
-
-                    <div className="flex items-center space-x-2 mb-4">
-                      <span className="text-xs text-muted-foreground">Colors:</span>
-                      <div className="flex space-x-1">
-                        {charm.colors.slice(0, 3).map((color, index) => (
-                          <div
-                            key={index}
-                            className="w-4 h-4 rounded-full border border-gray-200"
-                            style={{
-                              backgroundColor: color.toLowerCase() === 'rose gold' ? '#e8b4b8' : color.toLowerCase()
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
                     
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-2">
-                        <span className="text-lg font-semibold text-foreground">
-                          Rs {charm.price}
-                        </span>
+                        <span className="text-xl font-bold text-primary">Rs {charm.price}</span>
                         {charm.originalPrice && (
                           <span className="text-sm text-muted-foreground line-through">
                             Rs {charm.originalPrice}
                           </span>
                         )}
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => onNavigate(`product-charms-${charm.id}`)}
-                      >
-                        View Details
-                      </Button>
                     </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => onNavigate(`product-charms-${charm.id}`)}
+                    >
+                      View Details
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { Badge } from "../ui/badge";
 import { Card, CardContent } from "../ui/card";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 import { Heart, ShoppingBag, Star, ArrowLeft, Plus, Minus, User, Droplet, Sun, Wind, Package } from "lucide-react";
@@ -19,7 +18,6 @@ interface ProductDetailPageProps {
 
 export function ProductDetailPage({ onNavigate, productData, previousPage }: ProductDetailPageProps) {
   const [quantity, setQuantity] = useState(1);
-  const [selectedColor, setSelectedColor] = useState(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
@@ -40,6 +38,25 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
   }
 
   const { product, category, allProducts } = productData;
+
+  // Determine the category page to go back to
+  const getCategoryPage = () => {
+    const categoryLower = category.toLowerCase();
+    // Map category names to their page routes
+    const categoryMap: { [key: string]: string } = {
+      'flowers': 'flowers',
+      'bags': 'bags',
+      'charms': 'charms',
+      'bandanas': 'bandanas',
+      'accessories': 'accessories',
+      'keychains': 'keychains',
+      'featured': 'featured'
+    };
+    
+    return categoryMap[categoryLower] || 'home';
+  };
+
+  const backPage = getCategoryPage();
 
   // Generate multiple product images (in a real app, these would come from the backend)
   const productImages = [
@@ -165,7 +182,6 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
       category: category,
       rating: product.rating,
       reviews: product.reviews,
-      badge: product.badge,
       description: product.description
     };
     
@@ -177,37 +193,28 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
     );
   };
 
-  const getBadgeVariant = (badge: string) => {
-    switch (badge) {
-      case "Sale": return "destructive";
-      case "New": return "secondary";
-      case "Bestseller": return "default";
-      default: return "outline";
-    }
-  };
+
 
   const handleProductClick = (clickedProduct: any) => {
-    const categoryPrefix = category.toLowerCase().endsWith('s') 
-      ? category.toLowerCase().slice(0, -1) 
-      : category.toLowerCase();
-    onNavigate(`product-${categoryPrefix}s-${clickedProduct.id}`);
+    const categoryKey = category.toLowerCase();
+    onNavigate(`product-${categoryKey}-${clickedProduct.id}`);
   };
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-40">
+      <div className="bg-background border-b sticky top-0 z-40">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <Button 
               variant="ghost" 
-              onClick={() => onNavigate(previousPage || 'home')}
+              onClick={() => onNavigate(backPage)}
               className="flex items-center space-x-2"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Back</span>
             </Button>
-            <h1 className="text-primary">{product.name}</h1>
+            <h1 className="text-3xl font-semibold text-primary">{product.name}</h1>
             <div className="w-20"></div>
           </div>
         </div>
@@ -218,18 +225,12 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
           {/* Product Images - Left Side */}
           <div className="space-y-4">
             {/* Main Image */}
-            <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
+            <div className="relative aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
               <ImageWithFallback
                 src={productImages[selectedImageIndex]}
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
-              <Badge 
-                className="absolute top-4 left-4 shadow-sm" 
-                variant={getBadgeVariant(product.badge)}
-              >
-                {product.badge}
-              </Badge>
             </div>
             
             {/* Thumbnail Images */}
@@ -257,7 +258,7 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
           {/* Product Details - Right Side */}
           <div className="space-y-6">
             <div>
-              <h1 className="mb-2">{product.name}</h1>
+              <h1 className="mb-2 text-3xl font-semibold text-primary">{product.name}</h1>
               <div className="flex items-center space-x-4 mb-4">
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
@@ -285,11 +286,6 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
                     Rs {product.originalPrice}
                   </span>
                 )}
-                {product.originalPrice && (
-                  <Badge variant="destructive" className="text-sm">
-                    {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
-                  </Badge>
-                )}
               </div>
             </div>
 
@@ -299,47 +295,6 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
                 {getEnhancedDescription()}
               </p>
             </div>
-
-            {/* Color Selection */}
-            {product.colors && (
-              <div>
-                <h3 className="mb-3">Available Colors</h3>
-                <div className="flex space-x-3">
-                  {product.colors.map((color: string, index: number) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedColor(index)}
-                      className={`w-8 h-8 rounded-full border-2 transition-all ${
-                        selectedColor === index 
-                          ? 'border-primary scale-110' 
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
-                      style={{
-                        backgroundColor: color.toLowerCase() === 'multi' ? '#ff6b6b' :
-                                      color.toLowerCase() === 'cream' ? '#f5f5dc' :
-                                      color.toLowerCase() === 'peach' ? '#ffcba4' :
-                                      color.toLowerCase() === 'natural' ? '#f5f5dc' :
-                                      color.toLowerCase() === 'beige' ? '#f5f5dc' :
-                                      color.toLowerCase() === 'tan' ? '#d2b48c' :
-                                      color.toLowerCase() === 'olive' ? '#808000' :
-                                      color.toLowerCase() === 'sage' ? '#9dc183' :
-                                      color.toLowerCase() === 'mauve' ? '#e0b0ff' :
-                                      color.toLowerCase() === 'mint' ? '#98ff98' :
-                                      color.toLowerCase() === 'coral' ? '#ff7f50' :
-                                      color.toLowerCase() === 'dusty rose' ? '#dcae96' :
-                                      color.toLowerCase() === 'navy' ? '#000080' :
-                                      color.toLowerCase() === 'charcoal' ? '#36454f' :
-                                      color.toLowerCase() === 'burgundy' ? '#800020' :
-                                      color.toLowerCase()
-                      }}
-                    />
-                  ))}
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Selected: {product.colors[selectedColor]}
-                </p>
-              </div>
-            )}
 
             {/* Quantity */}
             <div>
@@ -579,57 +534,135 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
             <Separator className="mb-8" />
             <h2 className="mb-6">You Might Also Like</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((relatedProduct: any) => (
-                <Card 
-                  key={relatedProduct.id} 
-                  className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => handleProductClick(relatedProduct)}
-                >
-                  <div className="relative aspect-square overflow-hidden bg-gray-100">
-                    <ImageWithFallback
-                      src={relatedProduct.image}
-                      alt={relatedProduct.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    {relatedProduct.badge && (
-                      <Badge 
-                        className="absolute top-2 left-2" 
-                        variant={getBadgeVariant(relatedProduct.badge)}
-                      >
-                        {relatedProduct.badge}
-                      </Badge>
-                    )}
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="mb-2 line-clamp-1">{relatedProduct.name}</h3>
-                    <div className="flex items-center mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-4 w-4 ${
-                            i < Math.floor(relatedProduct.rating)
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : 'text-gray-300'
-                          }`}
+              {relatedProducts.map((relatedProduct: any) => {
+                const relatedWishlistItem = {
+                  id: `${category.toLowerCase()}-${relatedProduct.id}`,
+                  name: relatedProduct.name,
+                  price: relatedProduct.price,
+                  originalPrice: relatedProduct.originalPrice,
+                  image: relatedProduct.image,
+                  category: category,
+                  rating: relatedProduct.rating,
+                  reviews: relatedProduct.reviews,
+                  description: relatedProduct.description
+                };
+
+                const handleRelatedAddToCart = (e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  addItem({
+                    id: `${category.toLowerCase()}-${relatedProduct.id}`,
+                    name: relatedProduct.name,
+                    price: relatedProduct.price,
+                    image: relatedProduct.image,
+                    category: category,
+                    quantity: 1
+                  });
+                  toast.success(`${relatedProduct.name} added to cart!`);
+                };
+
+                const handleRelatedWishlistToggle = (e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  toggleItem(relatedWishlistItem);
+                  toast.success(
+                    isInWishlist(`${category.toLowerCase()}-${relatedProduct.id}`) 
+                      ? `${relatedProduct.name} removed from wishlist` 
+                      : `${relatedProduct.name} added to wishlist!`
+                  );
+                };
+
+                return (
+                  <Card 
+                    key={relatedProduct.id} 
+                    className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white dark:bg-card overflow-hidden"
+                  >
+                    <CardContent className="p-0">
+                      <div className="relative overflow-hidden">
+                        <ImageWithFallback
+                          src={relatedProduct.image}
+                          alt={relatedProduct.name}
+                          className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
+                          onClick={() => handleProductClick(relatedProduct)}
                         />
-                      ))}
-                      <span className="text-sm text-muted-foreground ml-2">
-                        ({relatedProduct.reviews})
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-foreground">
-                        Rs {relatedProduct.price}
-                      </span>
-                      {relatedProduct.originalPrice && (
-                        <span className="text-sm text-muted-foreground line-through">
-                          Rs {relatedProduct.originalPrice}
-                        </span>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                        
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute top-3 right-3 bg-white/80 dark:bg-black/50 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-black/70 h-9 w-9 rounded-full shadow-sm"
+                          onClick={handleRelatedWishlistToggle}
+                        >
+                          <Heart 
+                            className={`h-4 w-4 ${
+                              isInWishlist(`${category.toLowerCase()}-${relatedProduct.id}`) 
+                                ? 'fill-red-500 text-red-500' 
+                                : 'text-gray-600 dark:text-gray-300'
+                            }`} 
+                          />
+                        </Button>
+                        
+                        <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <Button 
+                            className="w-full bg-primary/90 backdrop-blur-sm hover:bg-primary"
+                            onClick={handleRelatedAddToCart}
+                          >
+                            <ShoppingBag className="h-4 w-4 mr-2" />
+                            Add to Cart
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="p-6">
+                        <div className="flex items-center mb-2">
+                          <div className="flex items-center">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-4 w-4 ${
+                                  i < Math.floor(relatedProduct.rating)
+                                    ? 'fill-yellow-400 text-yellow-400'
+                                    : 'text-gray-300 dark:text-gray-600'
+                                }`}
+                              />
+                            ))}
+                            <span className="text-sm text-muted-foreground ml-1">
+                              ({relatedProduct.reviews})
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <h3 
+                          className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors cursor-pointer"
+                          onClick={() => handleProductClick(relatedProduct)}
+                        >
+                          {relatedProduct.name}
+                        </h3>
+                        
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {relatedProduct.description}
+                        </p>
+                        
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xl font-bold text-primary">Rs {relatedProduct.price}</span>
+                            {relatedProduct.originalPrice && (
+                              <span className="text-sm text-muted-foreground line-through">
+                                Rs {relatedProduct.originalPrice}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => handleProductClick(relatedProduct)}
+                        >
+                          View Details
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         )}

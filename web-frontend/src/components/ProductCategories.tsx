@@ -47,7 +47,7 @@ export function ProductCategories({ onNavigate }: ProductCategoriesProps) {
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-b from-white to-purple-50/30">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-background to-purple-50/30 dark:to-black">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
@@ -64,7 +64,7 @@ export function ProductCategories({ onNavigate }: ProductCategoriesProps) {
           {categories.map((category, index) => (
             <Card 
               key={category.name} 
-              className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 backdrop-blur-sm overflow-hidden"
+              className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-card backdrop-blur-sm overflow-hidden"
             >
               <CardContent className="p-0">
                 <div className="relative overflow-hidden">
@@ -98,49 +98,6 @@ export function ProductCategories({ onNavigate }: ProductCategoriesProps) {
               </CardContent>
             </Card>
           ))}
-        </div>
-
-        {/* Special Featured Category */}
-        <div className="mt-16">
-          <Card className="overflow-hidden bg-gradient-to-r from-purple-100 to-pink-100 border-0 shadow-xl">
-            <CardContent className="p-0">
-              <div className="grid md:grid-cols-2 gap-0">
-                <div className="p-8 md:p-12 flex flex-col justify-center">
-                  <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-                    Custom Orders
-                  </h3>
-                  <p className="text-muted-foreground mb-6 text-lg">
-                    Have something special in mind? We create personalized crochet items just for you. 
-                    Choose your colors, patterns, and sizes to make it uniquely yours.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <Button 
-                      size="lg" 
-                      className="flex-1 sm:flex-none"
-                      onClick={() => onNavigate?.('contact')}
-                    >
-                      Start Custom Order
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="lg" 
-                      className="flex-1 sm:flex-none"
-                      onClick={() => onNavigate?.('examples')}
-                    >
-                      View Examples
-                    </Button>
-                  </div>
-                </div>
-                <div className="relative h-64 md:h-auto min-h-[300px]">
-                  <ImageWithFallback
-                    src="https://images.unsplash.com/photo-1638108799434-8484dabdc776?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwaGFuZG1hZGUlMjBpdGVtcyUyMGFlc3RoZXRpY3xlbnwxfHx8fDE3NTkxNjQxNTZ8MA&ixlib=rb-4.1.0&q=80&w=1080"
-                    alt="Custom crochet work"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </section>

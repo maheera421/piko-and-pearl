@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AuthProvider } from "./components/AuthContext";
 import { CartProvider } from "./components/CartContext";
 import { WishlistProvider } from "./components/WishlistContext";
 import { Header } from "./components/Header";
@@ -21,7 +22,6 @@ import { ProfilePage } from "./components/pages/ProfilePage";
 import { CheckoutPage } from "./components/pages/CheckoutPage";
 import { WishlistPage } from "./components/pages/WishlistPage";
 import { EternalBloomsPage } from "./components/pages/EternalBloomsPage";
-import { ViewExamplesPage } from "./components/pages/ViewExamplesPage";
 import { FeaturedProductsPage } from "./components/pages/FeaturedProductsPage";
 import { NewCollectionPage } from "./components/pages/NewCollectionPage";
 import { ProductDetailPage } from "./components/pages/ProductDetailPage";
@@ -60,9 +60,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1750009928696-61f5ed8eb8c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZmxvd2VycyUyMGhhbmRtYWRlJTIwcHVycGxlfGVufDF8fHx8MTc1OTI2ODAyMHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
         rating: 4.9,
         reviews: 32,
-        badge: "Bestseller",
-        description: "Beautiful handcrafted lavender roses that last forever",
-        colors: ["Lavender", "Purple", "Pink"]
+        description: "Beautiful handcrafted lavender roses that last forever"
       },
       {
         id: 2,
@@ -72,9 +70,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1753366556699-4be495e5bdd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwc3VuZmxvd2VyJTIweWVsbG93JTIwaGFuZG1hZGV8ZW58MXx8fHwxNzU5MjY4MDIzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
         rating: 4.8,
         reviews: 28,
-        badge: "Sale",
-        description: "Bright sunflower arrangement perfect for any occasion",
-        colors: ["Yellow", "Orange", "Green"]
+        description: "Bright sunflower arrangement perfect for any occasion"
       },
       {
         id: 3,
@@ -84,9 +80,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1749301560225-3032826b9e7f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZGFpc3klMjB3aGl0ZSUyMGZsb3dlcnN8ZW58MXx8fHwxNzU5MjY4MDI2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
         rating: 4.7,
         reviews: 19,
-        badge: "New",
-        description: "Delicate daisy garland for home decoration",
-        colors: ["White", "Yellow", "Green"]
+        description: "Delicate daisy garland for home decoration"
       },
       {
         id: 4,
@@ -96,9 +90,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1508808703020-ef18109db02f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwcGVvbnklMjBwaW5rJTIwZmxvd2Vyc3xlbnwxfHx8fDE3NTkyNjgwMzB8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
         rating: 5.0,
         reviews: 15,
-        badge: "Premium",
-        description: "Luxurious peony blooms in soft pastel colors",
-        colors: ["Pink", "Peach", "Cream"]
+        description: "Luxurious peony blooms in soft pastel colors"
       },
       {
         id: 5,
@@ -108,9 +100,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1575175090204-0a470102fc40?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwd2lsZGZsb3dlciUyMGJvdXF1ZXQlMjBjb2xvcmZ1bHxlbnwxfHx8fDE3NTkyNjgwMzN8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
         rating: 4.8,
         reviews: 24,
-        badge: "Popular",
-        description: "Mixed wildflower arrangement with natural charm",
-        colors: ["Multi", "Purple", "Blue"]
+        description: "Mixed wildflower arrangement with natural charm"
       },
       {
         id: 6,
@@ -120,9 +110,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1602750665669-6c7cc05144cb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hlcnJ5JTIwYmxvc3NvbSUyMHBpbmt8ZW58MXx8fHwxNzU5MjY4MDM2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
         rating: 4.9,
         reviews: 21,
-        badge: "Elegant",
-        description: "Delicate cherry blossom branch for spring decor",
-        colors: ["Pink", "White", "Green"]
+        description: "Delicate cherry blossom branch for spring decor"
       },
       {
         id: 7,
@@ -132,9 +120,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1750009928696-61f5ed8eb8c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZmxvd2VycyUyMGhhbmRtYWRlJTIwcHVycGxlfGVufDF8fHx8MTc1OTI2ODAyMHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
         rating: 4.6,
         reviews: 35,
-        badge: "Cute",
-        description: "Set of three small roses perfect for any space",
-        colors: ["Red", "Pink", "White"]
+        description: "Set of three small roses perfect for any space"
       },
       {
         id: 8,
@@ -144,9 +130,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1749301560225-3032826b9e7f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZGFpc3klMjB3aGl0ZSUyMGZsb3dlcnN8ZW58MXx8fHwxNzU5MjY4MDI2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
         rating: 4.8,
         reviews: 27,
-        badge: "Spring",
-        description: "Beautiful tulip collection for spring lovers",
-        colors: ["Red", "Yellow", "Pink"]
+        description: "Beautiful tulip collection for spring lovers"
       }
     ];
 
@@ -159,9 +143,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.9,
         reviews: 18,
-        badge: "Bestseller",
-        description: "Spacious handwoven tote perfect for everyday use",
-        colors: ["Natural", "Purple", "Pink"]
+        description: "Spacious handwoven tote perfect for everyday use"
       },
       {
         id: 2,
@@ -171,9 +153,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.7,
         reviews: 24,
-        badge: "Sale",
-        description: "Compact crossbody for hands-free convenience",
-        colors: ["Lavender", "Cream", "Sage"]
+        description: "Compact crossbody for hands-free convenience"
       },
       {
         id: 3,
@@ -183,9 +163,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.8,
         reviews: 15,
-        badge: "New",
-        description: "Eco-friendly market bag with sturdy handles",
-        colors: ["Beige", "Olive", "Dusty Rose"]
+        description: "Eco-friendly market bag with sturdy handles"
       },
       {
         id: 4,
@@ -195,9 +173,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.6,
         reviews: 12,
-        badge: "Elegant",
-        description: "Sophisticated clutch for special occasions",
-        colors: ["Black", "Gold", "Silver"]
+        description: "Sophisticated clutch for special occasions"
       },
       {
         id: 5,
@@ -207,9 +183,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.9,
         reviews: 21,
-        badge: "Popular",
-        description: "Trendy bucket style with drawstring closure",
-        colors: ["Tan", "Mauve", "Mint"]
+        description: "Trendy bucket style with drawstring closure"
       },
       {
         id: 6,
@@ -219,9 +193,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.8,
         reviews: 9,
-        badge: "Professional",
-        description: "Work-ready tote with laptop compartment",
-        colors: ["Navy", "Charcoal", "Burgundy"]
+        description: "Work-ready tote with laptop compartment"
       }
     ];
 
@@ -234,9 +206,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.8,
         reviews: 22,
-        badge: "New",
-        description: "Delicate butterfly design with pearl accents",
-        colors: ["Purple", "Pink", "Blue"]
+        description: "Delicate butterfly design with pearl accents"
       },
       {
         id: 2,
@@ -246,9 +216,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.7,
         reviews: 18,
-        badge: "Sale",
-        description: "Elegant tassel charm in various colors",
-        colors: ["Gold", "Silver", "Rose Gold"]
+        description: "Elegant tassel charm in various colors"
       },
       {
         id: 3,
@@ -258,9 +226,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.9,
         reviews: 25,
-        badge: "Bestseller",
-        description: "Cute mini flower perfect for any bag",
-        colors: ["Lavender", "White", "Yellow"]
+        description: "Cute mini flower perfect for any bag"
       },
       {
         id: 4,
@@ -270,9 +236,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.6,
         reviews: 14,
-        badge: "Modern",
-        description: "Contemporary geometric design",
-        colors: ["Black", "Gray", "Beige"]
+        description: "Contemporary geometric design"
       },
       {
         id: 5,
@@ -282,9 +246,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.8,
         reviews: 31,
-        badge: "Popular",
-        description: "Fluffy pom pom in vibrant colors",
-        colors: ["Pink", "Purple", "Mint"]
+        description: "Fluffy pom pom in vibrant colors"
       },
       {
         id: 6,
@@ -294,9 +256,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.9,
         reviews: 19,
-        badge: "Cute",
-        description: "Sweet heart design with decorative stitching",
-        colors: ["Red", "Pink", "Purple"]
+        description: "Sweet heart design with decorative stitching"
       }
     ];
 
@@ -309,9 +269,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.8,
         reviews: 34,
-        badge: "Bestseller",
-        description: "Comfortable bandana perfect for daily wear",
-        colors: ["Purple", "Pink", "Blue"]
+        description: "Comfortable bandana perfect for daily wear"
       },
       {
         id: 2,
@@ -321,9 +279,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.9,
         reviews: 28,
-        badge: "New",
-        description: "Beautiful floral pattern with soft texture",
-        colors: ["Lavender", "Rose", "Cream"]
+        description: "Beautiful floral pattern with soft texture"
       },
       {
         id: 3,
@@ -333,9 +289,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.7,
         reviews: 22,
-        badge: "Sale",
-        description: "Festive design for special occasions",
-        colors: ["Red", "Green", "Gold"]
+        description: "Festive design for special occasions"
       },
       {
         id: 4,
@@ -345,9 +299,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.9,
         reviews: 16,
-        badge: "Premium",
-        description: "Two patterns in one reversible design",
-        colors: ["Multi", "Rainbow", "Pastels"]
+        description: "Two patterns in one reversible design"
       },
       {
         id: 5,
@@ -357,9 +309,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.6,
         reviews: 31,
-        badge: "Trendy",
-        description: "Light and breezy for warm weather",
-        colors: ["Yellow", "Orange", "Coral"]
+        description: "Light and breezy for warm weather"
       },
       {
         id: 6,
@@ -369,9 +319,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 5.0,
         reviews: 12,
-        badge: "Custom",
-        description: "Add custom text or patterns for a personal touch",
-        colors: ["Any Color", "Custom", "Made to Order"]
+        description: "Add custom text or patterns for a personal touch"
       }
     ];
 
@@ -384,9 +332,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.9,
         reviews: 45,
-        badge: "Bestseller",
-        description: "Set of 3 soft crochet scrunchies",
-        colors: ["Purple", "Pink", "Lavender"]
+        description: "Set of 3 soft crochet scrunchies"
       },
       {
         id: 2,
@@ -396,9 +342,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.8,
         reviews: 32,
-        badge: "New",
-        description: "Cozy winter headband with flower detail",
-        colors: ["Cream", "Gray", "Rose"]
+        description: "Cozy winter headband with flower detail"
       },
       {
         id: 3,
@@ -408,9 +352,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.7,
         reviews: 28,
-        badge: "Sale",
-        description: "Protective crochet phone case with strap",
-        colors: ["Black", "Navy", "Burgundy"]
+        description: "Protective crochet phone case with strap"
       },
       {
         id: 4,
@@ -420,9 +362,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.6,
         reviews: 19,
-        badge: "Cute",
-        description: "Adorable bookmarks with tassels",
-        colors: ["Multi", "Pastels", "Earth Tones"]
+        description: "Adorable bookmarks with tassels"
       },
       {
         id: 5,
@@ -432,9 +372,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.9,
         reviews: 37,
-        badge: "Popular",
-        description: "Small purse perfect for coins and cards",
-        colors: ["Mint", "Coral", "Sage"]
+        description: "Small purse perfect for coins and cards"
       },
       {
         id: 6,
@@ -444,9 +382,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.8,
         reviews: 24,
-        badge: "Cozy",
-        description: "Keep your drinks warm with style",
-        colors: ["Brown", "Beige", "Tan"]
+        description: "Keep your drinks warm with style"
       },
       {
         id: 7,
@@ -456,9 +392,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 5.0,
         reviews: 15,
-        badge: "Elegant",
-        description: "Delicate pouch for storing jewelry",
-        colors: ["Silk", "Pearl", "Champagne"]
+        description: "Delicate pouch for storing jewelry"
       },
       {
         id: 8,
@@ -468,9 +402,7 @@ export default function App() {
         image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
         rating: 4.7,
         reviews: 21,
-        badge: "Trendy",
-        description: "Stylish cover for your plant pots",
-        colors: ["Natural", "Green", "Terracotta"]
+        description: "Stylish cover for your plant pots"
       }
     ];
 
@@ -489,9 +421,7 @@ export default function App() {
           image: "https://images.unsplash.com/photo-1750009928696-61f5ed8eb8c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZmxvd2VycyUyMGhhbmRtYWRlJTIwcHVycGxlfGVufDF8fHx8MTc1OTI2ODAyMHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
           rating: 4.9,
           reviews: 32,
-          badge: "Bestseller",
-          description: "Beautiful handcrafted lavender roses that bloom forever",
-          colors: ["Lavender", "Purple", "Pink"]
+          description: "Beautiful handcrafted lavender roses that bloom forever"
         },
         {
           id: 2,
@@ -501,9 +431,7 @@ export default function App() {
           image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
           rating: 4.9,
           reviews: 18,
-          badge: "New",
-          description: "Spacious handwoven tote perfect for everyday use",
-          colors: ["Natural", "Purple", "Pink"]
+          description: "Spacious handwoven tote perfect for everyday use"
         },
         {
           id: 3,
@@ -513,9 +441,7 @@ export default function App() {
           image: "https://images.unsplash.com/photo-1753366556699-4be495e5bdd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwc3VuZmxvd2VyJTIweWVsbG93JTIwaGFuZG1hZGV8ZW58MXx8fHwxNzU5MjY4MDIzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
           rating: 4.8,
           reviews: 28,
-          badge: "Sale",
-          description: "Bright sunflower arrangement perfect for any occasion",
-          colors: ["Yellow", "Orange", "Green"]
+          description: "Bright sunflower arrangement perfect for any occasion"
         },
         {
           id: 4,
@@ -525,9 +451,7 @@ export default function App() {
           image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
           rating: 4.7,
           reviews: 32,
-          badge: "Sale",
-          description: "Delicate floral charm to brighten up any bag",
-          colors: ["Purple", "Pink", "Blue"]
+          description: "Delicate floral charm to brighten up any bag"
         },
         {
           id: 5,
@@ -537,9 +461,7 @@ export default function App() {
           image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
           rating: 5.0,
           reviews: 15,
-          badge: "Popular",
-          description: "Soft and comfortable bandana for your furry friend",
-          colors: ["Purple", "Pink", "Blue"]
+          description: "Soft and comfortable bandana for your furry friend"
         },
         {
           id: 6,
@@ -549,9 +471,7 @@ export default function App() {
           image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
           rating: 4.6,
           reviews: 28,
-          badge: "Set of 3",
-          description: "Beautiful set of three scrunchies in complementary colors",
-          colors: ["Purple", "Pink", "Lavender"]
+          description: "Beautiful set of three scrunchies in complementary colors"
         }
       ];
       const product = featuredProducts.find((p: any) => p.id.toString() === id);
@@ -563,7 +483,7 @@ export default function App() {
     if (!categoryProducts) return null;
     
     const product = categoryProducts.find((p: any) => p.id.toString() === id);
-    return product ? { product, category: category.charAt(0).toUpperCase() + category.slice(1, -1), allProducts: categoryProducts } : null;
+    return product ? { product, category: category.charAt(0).toUpperCase() + category.slice(1), allProducts: categoryProducts } : null;
   };
 
   // Home page content
@@ -618,8 +538,6 @@ export default function App() {
         return <WishlistPage onNavigate={navigate} />;
       case 'eternal-blooms':
         return <EternalBloomsPage onNavigate={navigate} />;
-      case 'examples':
-        return <ViewExamplesPage onNavigate={navigate} />;
       case 'featured':
         return <FeaturedProductsPage onNavigate={navigate} />;
       case 'new-collection':
@@ -634,11 +552,13 @@ export default function App() {
   };
 
   return (
-    <CartProvider>
-      <WishlistProvider>
-        {renderPage()}
-        <Toaster />
-      </WishlistProvider>
-    </CartProvider>
+    <AuthProvider>
+      <CartProvider>
+        <WishlistProvider>
+          {renderPage()}
+          <Toaster />
+        </WishlistProvider>
+      </CartProvider>
+    </AuthProvider>
   );
 }

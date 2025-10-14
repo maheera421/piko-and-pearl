@@ -7,7 +7,7 @@ interface HandcraftedCollectionProps {
 
 export function HandcraftedCollection({ onNavigate }: HandcraftedCollectionProps) {
   return (
-    <section className="py-8 md:py-12 bg-gradient-to-br from-purple-50 to-pink-50">
+    <section className="py-8 md:py-12 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-black dark:to-black">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Collection Image */}
@@ -25,7 +25,7 @@ export function HandcraftedCollection({ onNavigate }: HandcraftedCollectionProps
           {/* Collection Content */}
           <div className="space-y-6 order-1 lg:order-2">
             <div>
-              <div className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mb-4">
+              <div className="inline-block bg-primary/10 dark:bg-primary/20 text-primary px-3 py-1 rounded-full text-sm font-medium mb-4">
                 New Collection
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
@@ -52,14 +52,6 @@ export function HandcraftedCollection({ onNavigate }: HandcraftedCollectionProps
                 onClick={() => onNavigate?.('eternal-blooms')}
               >
                 Explore Collection
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="px-8 py-6 text-lg"
-                onClick={() => onNavigate?.('contact')}
-              >
-                Custom Order
               </Button>
             </div>
           </div>

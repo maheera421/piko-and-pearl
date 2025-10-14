@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import { Badge } from "../ui/badge";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 import { Heart, ShoppingBag, Star, ArrowLeft, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
@@ -16,7 +15,6 @@ interface AccessoriesPageProps {
 export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
   const [sortBy, setSortBy] = useState("featured");
   const [priceFilter, setPriceFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
 
@@ -30,7 +28,6 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       category: 'Accessories',
       rating: accessory.rating,
       reviews: accessory.reviews,
-      badge: accessory.badge,
       description: accessory.description
     };
     
@@ -63,11 +60,7 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.9,
       reviews: 45,
-      badge: "Bestseller",
-      description: "Set of 3 soft crochet scrunchies",
-      colors: ["Purple", "Pink", "Lavender"],
-      quantity: "3 pieces",
-      type: "hair"
+      description: "Set of 3 soft crochet scrunchies"
     },
     {
       id: 2,
@@ -77,11 +70,7 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.8,
       reviews: 32,
-      badge: "New",
-      description: "Cozy winter headband with flower detail",
-      colors: ["Cream", "Gray", "Rose"],
-      quantity: "1 piece",
-      type: "hair"
+      description: "Cozy winter headband with flower detail"
     },
     {
       id: 3,
@@ -91,11 +80,7 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.7,
       reviews: 28,
-      badge: "Sale",
-      description: "Protective crochet phone case with strap",
-      colors: ["Black", "Navy", "Burgundy"],
-      quantity: "1 piece",
-      type: "tech"
+      description: "Protective crochet phone case with strap"
     },
     {
       id: 4,
@@ -105,11 +90,7 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.6,
       reviews: 19,
-      badge: "Cute",
-      description: "Adorable bookmarks with tassels",
-      colors: ["Multi", "Pastels", "Earth Tones"],
-      quantity: "5 pieces",
-      type: "home"
+      description: "Adorable bookmarks with tassels"
     },
     {
       id: 5,
@@ -119,11 +100,7 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.9,
       reviews: 37,
-      badge: "Popular",
-      description: "Small purse perfect for coins and cards",
-      colors: ["Mint", "Coral", "Sage"],
-      quantity: "1 piece",
-      type: "storage"
+      description: "Small purse perfect for coins and cards"
     },
     {
       id: 6,
@@ -133,11 +110,7 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.8,
       reviews: 24,
-      badge: "Cozy",
-      description: "Keep your drinks warm with style",
-      colors: ["Brown", "Beige", "Tan"],
-      quantity: "2 pieces",
-      type: "home"
+      description: "Keep your drinks warm with style"
     },
     {
       id: 7,
@@ -147,11 +120,7 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 5.0,
       reviews: 15,
-      badge: "Elegant",
-      description: "Delicate pouch for storing jewelry",
-      colors: ["Silk", "Pearl", "Champagne"],
-      quantity: "1 piece",
-      type: "storage"
+      description: "Delicate pouch for storing jewelry"
     },
     {
       id: 8,
@@ -161,11 +130,7 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.7,
       reviews: 21,
-      badge: "Trendy",
-      description: "Stylish cover for your plant pots",
-      colors: ["Natural", "Green", "Terracotta"],
-      quantity: "1 piece",
-      type: "home"
+      description: "Stylish cover for your plant pots"
     }
   ];
 
@@ -176,21 +141,16 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
     // Apply price filter
     if (priceFilter !== "all") {
       switch (priceFilter) {
-        case "under-1500":
-          filteredAccessories = filteredAccessories.filter(accessory => accessory.price < 1500);
+        case "under-1200":
+          filteredAccessories = filteredAccessories.filter(accessory => accessory.price < 1200);
           break;
-        case "1500-2000":
-          filteredAccessories = filteredAccessories.filter(accessory => accessory.price >= 1500 && accessory.price <= 2000);
+        case "1200-1600":
+          filteredAccessories = filteredAccessories.filter(accessory => accessory.price >= 1200 && accessory.price <= 1600);
           break;
-        case "over-2000":
-          filteredAccessories = filteredAccessories.filter(accessory => accessory.price > 2000);
+        case "over-1600":
+          filteredAccessories = filteredAccessories.filter(accessory => accessory.price > 1600);
           break;
       }
-    }
-
-    // Apply type filter
-    if (typeFilter !== "all") {
-      filteredAccessories = filteredAccessories.filter(accessory => accessory.type === typeFilter);
     }
     
     // Apply sorting
@@ -210,19 +170,10 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
 
   const accessories = getFilteredAndSortedAccessories();
 
-  const getBadgeVariant = (badge: string) => {
-    switch (badge) {
-      case "Sale": return "destructive";
-      case "New": return "secondary";
-      case "Bestseller": return "default";
-      default: return "outline";
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-40">
+      <div className="bg-white dark:bg-card border-b sticky top-0 z-40">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <Button 
@@ -233,28 +184,28 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
               <ArrowLeft className="h-4 w-4" />
               <span>Back to Home</span>
             </Button>
-            <h1 className="text-2xl font-bold text-primary">Accessories Collection</h1>
+            <h1 className="text-2xl font-bold text-primary">Crochet Accessories Collection</h1>
             <div className="w-32"></div>
           </div>
         </div>
       </div>
 
       {/* Hero Section */}
-      <section className="py-12 bg-gradient-to-b from-purple-50/50 to-white">
+      <section className="py-12 bg-gradient-to-b from-purple-50/50 to-white dark:from-purple-950/20 dark:to-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Unique Accessories
+              Charming Crochet Accessories
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Complete your look with our handcrafted accessories. From practical to decorative, each piece adds a special touch.
+              Discover unique handmade accessories that add a touch of warmth and personality to your daily life.
             </p>
           </div>
         </div>
       </section>
 
       {/* Filters and Sorting */}
-      <section className="py-6 bg-white border-b">
+      <section className="py-6 bg-white dark:bg-card border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row items-center justify-between space-y-4 lg:space-y-0">
             <div className="flex flex-wrap items-center gap-4">
@@ -269,22 +220,9 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Prices</SelectItem>
-                  <SelectItem value="under-1500">Under Rs 1,500</SelectItem>
-                  <SelectItem value="1500-2000">Rs 1,500 - 2,000</SelectItem>
-                  <SelectItem value="over-2000">Over Rs 2,000</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="hair">Hair</SelectItem>
-                  <SelectItem value="home">Home</SelectItem>
-                  <SelectItem value="storage">Storage</SelectItem>
-                  <SelectItem value="tech">Tech</SelectItem>
+                  <SelectItem value="under-1200">Under Rs 1,200</SelectItem>
+                  <SelectItem value="1200-1600">Rs 1,200 - 1,600</SelectItem>
+                  <SelectItem value="over-1600">Over Rs 1,600</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -315,11 +253,11 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       {/* Products Grid */}
       <section className="py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {accessories.map((accessory) => (
               <Card 
                 key={accessory.id} 
-                className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white overflow-hidden"
+                className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white dark:bg-card overflow-hidden"
               >
                 <CardContent className="p-0">
                   <div className="relative overflow-hidden">
@@ -330,24 +268,17 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
                       onClick={() => onNavigate(`product-accessories-${accessory.id}`)}
                     />
                     
-                    <Badge 
-                      className="absolute top-3 left-3 shadow-sm" 
-                      variant={getBadgeVariant(accessory.badge)}
-                    >
-                      {accessory.badge}
-                    </Badge>
-                    
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white/90 h-9 w-9 rounded-full shadow-sm"
+                      className="absolute top-3 right-3 bg-white/80 dark:bg-black/50 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-black/70 h-9 w-9 rounded-full shadow-sm"
                       onClick={() => toggleWishlist(accessory)}
                     >
                       <Heart 
                         className={`h-4 w-4 ${
                           isInWishlist(`accessories-${accessory.id}`) 
                             ? 'fill-red-500 text-red-500' 
-                            : 'text-gray-600'
+                            : 'text-gray-600 dark:text-gray-300'
                         }`} 
                       />
                     </Button>
@@ -372,7 +303,7 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
                             className={`h-4 w-4 ${
                               i < Math.floor(accessory.rating)
                                 ? 'fill-yellow-400 text-yellow-400'
-                                : 'text-gray-300'
+                                : 'text-gray-300 dark:text-gray-600'
                             }`}
                           />
                         ))}
@@ -392,52 +323,25 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
                     <p className="text-sm text-muted-foreground mb-3">
                       {accessory.description}
                     </p>
-
-                    <div className="flex items-center space-x-2 mb-2">
-                      <span className="text-xs text-muted-foreground">Colors:</span>
-                      <div className="flex space-x-1">
-                        {accessory.colors.slice(0, 3).map((color, index) => (
-                          <div
-                            key={index}
-                            className="w-4 h-4 rounded-full border border-gray-200"
-                            style={{
-                              backgroundColor: color.toLowerCase() === 'multi' ? '#ff6b6b' :
-                                            color.toLowerCase() === 'pastels' ? '#ffeaa7' :
-                                            color.toLowerCase() === 'earth tones' ? '#8b7355' :
-                                            color.toLowerCase() === 'silk' ? '#f5f5dc' :
-                                            color.toLowerCase() === 'pearl' ? '#faf0e6' :
-                                            color.toLowerCase() === 'champagne' ? '#f7e7ce' :
-                                            color.toLowerCase()
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2 mb-4">
-                      <span className="text-xs text-muted-foreground">Quantity:</span>
-                      <span className="text-xs text-foreground">{accessory.quantity}</span>
-                    </div>
                     
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-2">
-                        <span className="text-lg font-semibold text-foreground">
-                          Rs {accessory.price}
-                        </span>
+                        <span className="text-xl font-bold text-primary">Rs {accessory.price}</span>
                         {accessory.originalPrice && (
                           <span className="text-sm text-muted-foreground line-through">
                             Rs {accessory.originalPrice}
                           </span>
                         )}
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => onNavigate(`product-accessories-${accessory.id}`)}
-                      >
-                        View Details
-                      </Button>
                     </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => onNavigate(`product-accessories-${accessory.id}`)}
+                    >
+                      View Details
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

@@ -5,7 +5,7 @@ import { Input } from "../ui/input";
 import { Separator } from "../ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
-import { ArrowLeft, Minus, Plus, Trash2, Tag, CreditCard, Truck, Shield } from "lucide-react";
+import { ArrowLeft, Minus, Plus, Trash2, CreditCard, Truck, Shield } from "lucide-react";
 import { useCart } from "../CartContext";
 import { toast } from "sonner@2.0.3";
 
@@ -14,9 +14,7 @@ interface CartPageProps {
 }
 
 export function CartPage({ onNavigate }: CartPageProps) {
-  const [discountCode, setDiscountCode] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("credit");
-  const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; discount: number } | null>(null);
   const { items: cartItems, updateQuantity: updateCartQuantity, removeItem: removeCartItem, getTotalPrice, clearCart } = useCart();
 
   const updateQuantity = (id: string, newQuantity: number) => {
@@ -31,33 +29,15 @@ export function CartPage({ onNavigate }: CartPageProps) {
     toast.success("Item removed from cart");
   };
 
-  const applyDiscountCode = () => {
-    const validCodes = {
-      "WELCOME10": 10,
-      "SUMMER20": 20,
-      "FIRST15": 15,
-      "PIKO25": 25
-    };
-    
-    const discount = validCodes[discountCode.toUpperCase() as keyof typeof validCodes];
-    if (discount) {
-      setAppliedDiscount({ code: discountCode.toUpperCase(), discount });
-      setDiscountCode("");
-    } else {
-      alert("Invalid discount code");
-    }
-  };
-
   const subtotal = getTotalPrice();
-  const discountAmount = appliedDiscount ? (subtotal * appliedDiscount.discount / 100) : 0;
   const shipping = subtotal > 3000 ? 0 : 500; // Free shipping over Rs 3,000, otherwise Rs 500
-  const tax = (subtotal - discountAmount) * 0.17; // 17% GST in Pakistan
-  const total = subtotal - discountAmount + shipping + tax;
+  const tax = subtotal * 0.17; // 17% GST in Pakistan
+  const total = subtotal + shipping + tax;
 
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="bg-white border-b">
+        <div className="bg-background border-b">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <Button 
               variant="ghost" 
@@ -93,7 +73,7 @@ export function CartPage({ onNavigate }: CartPageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-background border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <Button 
@@ -170,38 +150,6 @@ export function CartPage({ onNavigate }: CartPageProps) {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Discount Code */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <Tag className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold">Discount Code</h3>
-                </div>
-                {appliedDiscount ? (
-                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                    <span className="text-green-700">Code "{appliedDiscount.code}" applied (-{appliedDiscount.discount}%)</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setAppliedDiscount(null)}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex space-x-2">
-                    <Input
-                      placeholder="Enter discount code"
-                      value={discountCode}
-                      onChange={(e) => setDiscountCode(e.target.value)}
-                    />
-                    <Button onClick={applyDiscountCode}>Apply</Button>
-                  </div>
-                )}
-
-              </CardContent>
-            </Card>
           </div>
 
           {/* Order Summary */}
@@ -215,13 +163,6 @@ export function CartPage({ onNavigate }: CartPageProps) {
                     <span>Subtotal</span>
                     <span>Rs {subtotal.toFixed(0)}</span>
                   </div>
-                  
-                  {appliedDiscount && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount ({appliedDiscount.discount}%)</span>
-                      <span>-Rs {discountAmount.toFixed(0)}</span>
-                    </div>
-                  )}
                   
                   <div className="flex justify-between">
                     <span>Shipping</span>

@@ -46,7 +46,7 @@ export function WishlistPage({ onNavigate }: WishlistPageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-40">
+      <div className="bg-background border-b sticky top-0 z-40">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <Button 
@@ -71,7 +71,7 @@ export function WishlistPage({ onNavigate }: WishlistPageProps) {
             <p className="text-muted-foreground mb-6">
               Save items you love to your wishlist and shop them later
             </p>
-            <Button onClick={() => onNavigate('flowers')}>
+            <Button onClick={() => onNavigate('home')}>
               Start Shopping
             </Button>
           </div>
@@ -87,7 +87,7 @@ export function WishlistPage({ onNavigate }: WishlistPageProps) {
               {wishlistItems.map((item) => (
                 <Card 
                   key={item.id} 
-                  className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white overflow-hidden"
+                  className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-card overflow-hidden"
                 >
                   <CardContent className="p-0">
                     <div className="relative overflow-hidden">
@@ -199,7 +199,7 @@ export function WishlistPage({ onNavigate }: WishlistPageProps) {
               <Button 
                 variant="outline" 
                 size="lg"
-                onClick={() => onNavigate('flowers')}
+                onClick={() => onNavigate('home')}
               >
                 Continue Shopping
               </Button>

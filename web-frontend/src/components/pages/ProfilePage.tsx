@@ -1,89 +1,361 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { Badge } from "../ui/badge";
-import { ImageWithFallback } from "../figma/ImageWithFallback";
-import { ArrowLeft, User, Package, Heart, Settings, Star, MapPin, Phone, Mail, Calendar } from "lucide-react";
+import { Label } from "../ui/label";
+import { Switch } from "../ui/switch";
+import { ArrowLeft, User, Mail, Lock, UserPlus, Moon, Sun, Upload, X } from "lucide-react";
+import { useAuth } from "../AuthContext";
+import { toast } from "sonner@2.0.3";
 
 interface ProfilePageProps {
   onNavigate: (page: string) => void;
 }
 
 export function ProfilePage({ onNavigate }: ProfilePageProps) {
-  const [userInfo, setUserInfo] = useState({
-    name: "Fatima Khan",
-    email: "fatima.khan@email.com",
-    phone: "+92 300 1234567",
-    address: "House 123, Street 45, F-8/1, Islamabad, Pakistan",
-    joinDate: "December 2025"
+  const { user, isAuthenticated, login, signup, logout } = useAuth();
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    name: '',
+    confirmPassword: ''
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+
+  // Profile form data
+  const [profileData, setProfileData] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
   });
 
-
-
-  const [orderHistory] = useState([
-    {
-      id: "ORD-001",
-      date: "2024-03-15",
-      total: 2598,
-      status: "Delivered",
-      items: [
-        { name: "Mini Amigurumi Bear", quantity: 2, price: 899 },
-        { name: "Butterfly Charm", quantity: 1, price: 800 }
-      ]
-    },
-    {
-      id: "ORD-002",
-      date: "2024-03-08",
-      total: 2899,
-      status: "Delivered",
-      items: [
-        { name: "Boho Tote Bag", quantity: 1, price: 2899 }
-      ]
-    },
-    {
-      id: "ORD-003",
-      date: "2024-02-28",
-      total: 2499,
-      status: "Processing",
-      items: [
-        { name: "Lavender Rose Bouquet", quantity: 1, price: 2499 }
-      ]
-    },
-    {
-      id: "ORD-004",
-      date: "2024-02-20",
-      total: 2998,
-      status: "Shipped",
-      items: [
-        { name: "Hair Scrunchie Set", quantity: 1, price: 1299 },
-        { name: "Crochet Bandana", quantity: 1, price: 1299 },
-        { name: "Mini Flower Charm", quantity: 1, price: 400 }
-      ]
+  // Load dark mode preference
+  useEffect(() => {
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setIsDarkMode(savedDarkMode);
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
     }
-  ]);
+  }, []);
+
+  // Load profile photo
+  useEffect(() => {
+    const savedPhoto = localStorage.getItem('profilePhoto');
+    if (savedPhoto) {
+      setProfilePhoto(savedPhoto);
+    }
+  }, []);
+
+  // Update profile data when user changes
+  useEffect(() => {
+    if (user) {
+      setProfileData(prev => ({
+        ...prev,
+        name: user.name,
+        email: user.email
+      }));
+    }
+  }, [user]);
+
+  const toggleDarkMode = () => {
+    const newDarkMode = !isDarkMode;
+    setIsDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', String(newDarkMode));
+    
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    toast.success(`Dark mode ${newDarkMode ? 'enabled' : 'disabled'}`);
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image size must be less than 5MB");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setProfilePhoto(result);
+        localStorage.setItem('profilePhoto', result);
+        toast.success("Profile photo updated!");
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removePhoto = () => {
+    setProfilePhoto(null);
+    localStorage.removeItem('profilePhoto');
+    toast.success("Profile photo removed");
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.email || !formData.password) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await login(formData.email, formData.password);
+      toast.success("Welcome back!");
+      setFormData({ email: '', password: '', name: '', confirmPassword: '' });
+    } catch (error) {
+      toast.error("Login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.email || !formData.password || !formData.name) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await signup(formData.email, formData.password, formData.name);
+      toast.success("Account created successfully! Welcome to Piko & Pearl!");
+      setFormData({ email: '', password: '', name: '', confirmPassword: '' });
+    } catch (error) {
+      toast.error("Signup failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleUpdateProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would update the user's profile
-    alert("Profile updated successfully!");
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'delivered': return 'default';
-      case 'shipped': return 'secondary';
-      case 'processing': return 'outline';
-      default: return 'outline';
+    
+    // Validate password change if attempting to update
+    if (profileData.newPassword) {
+      if (!profileData.currentPassword) {
+        toast.error("Please enter your current password");
+        return;
+      }
+      if (profileData.newPassword !== profileData.confirmPassword) {
+        toast.error("New passwords do not match");
+        return;
+      }
+      if (profileData.newPassword.length < 6) {
+        toast.error("Password must be at least 6 characters");
+        return;
+      }
     }
+
+    toast.success("Profile updated successfully!");
+    // Clear password fields after update
+    setProfileData(prev => ({
+      ...prev,
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: ""
+    }));
   };
 
+  const handleLogout = () => {
+    logout();
+    toast.success("Logged out successfully");
+    onNavigate('home');
+  };
+
+  // Show login/signup form if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <div className="bg-white dark:bg-card border-b">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center justify-between">
+              <Button 
+                variant="ghost" 
+                onClick={() => onNavigate('home')}
+                className="flex items-center space-x-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Home</span>
+              </Button>
+              <h1 className="text-2xl font-bold text-primary">My Account</h1>
+              <div className="w-32"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Auth Forms */}
+        <section className="py-12">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md mx-auto">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-center">
+                    {authMode === 'login' ? 'Sign In' : 'Create Account'}
+                  </CardTitle>
+                  <p className="text-center text-sm text-muted-foreground">
+                    {authMode === 'login' 
+                      ? 'Welcome back! Sign in to your account' 
+                      : 'Join Piko & Pearl to start shopping'}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  {authMode === 'login' ? (
+                    <form onSubmit={handleLogin} className="space-y-4">
+                      <div>
+                        <Label>Email Address *</Label>
+                        <div className="relative mt-2">
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="email"
+                            required
+                            value={formData.email}
+                            onChange={(e) => setFormData({...formData, email: e.target.value})}
+                            placeholder="your@email.com"
+                            className="pl-10"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Password *</Label>
+                        <div className="relative mt-2">
+                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="password"
+                            required
+                            value={formData.password}
+                            onChange={(e) => setFormData({...formData, password: e.target.value})}
+                            placeholder="Enter your password"
+                            className="pl-10"
+                          />
+                        </div>
+                      </div>
+                      <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading ? 'Signing in...' : 'Sign In'}
+                      </Button>
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground">
+                          Don't have an account?{' '}
+                          <button
+                            type="button"
+                            onClick={() => setAuthMode('signup')}
+                            className="text-primary hover:underline"
+                          >
+                            Sign up
+                          </button>
+                        </p>
+                      </div>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleSignup} className="space-y-4">
+                      <div>
+                        <Label>Full Name *</Label>
+                        <div className="relative mt-2">
+                          <UserPlus className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="text"
+                            required
+                            value={formData.name}
+                            onChange={(e) => setFormData({...formData, name: e.target.value})}
+                            placeholder="Your full name"
+                            className="pl-10"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Email Address *</Label>
+                        <div className="relative mt-2">
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="email"
+                            required
+                            value={formData.email}
+                            onChange={(e) => setFormData({...formData, email: e.target.value})}
+                            placeholder="your@email.com"
+                            className="pl-10"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Password *</Label>
+                        <div className="relative mt-2">
+                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="password"
+                            required
+                            value={formData.password}
+                            onChange={(e) => setFormData({...formData, password: e.target.value})}
+                            placeholder="Create a password (min 6 characters)"
+                            className="pl-10"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Confirm Password *</Label>
+                        <div className="relative mt-2">
+                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="password"
+                            required
+                            value={formData.confirmPassword}
+                            onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                            placeholder="Confirm your password"
+                            className="pl-10"
+                          />
+                        </div>
+                      </div>
+                      <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading ? 'Creating Account...' : 'Sign Up'}
+                      </Button>
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground">
+                          Already have an account?{' '}
+                          <button
+                            type="button"
+                            onClick={() => setAuthMode('login')}
+                            className="text-primary hover:underline"
+                          >
+                            Sign in
+                          </button>
+                        </p>
+                      </div>
+                    </form>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  // Show profile page if authenticated
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white dark:bg-card border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <Button 
@@ -95,189 +367,171 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               <span>Back to Home</span>
             </Button>
             <h1 className="text-2xl font-bold text-primary">My Account</h1>
-            <div className="w-32"></div>
+            <Button variant="outline" onClick={handleLogout}>
+              Logout
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Profile Hero */}
-      <section className="py-8 bg-gradient-to-b from-purple-50/50 to-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center space-x-6">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
-              <User className="h-10 w-10 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-foreground">{userInfo.name}</h2>
-              <p className="text-muted-foreground">{userInfo.email}</p>
-              <div className="flex items-center space-x-2 mt-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Member since {userInfo.joinDate}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Profile Content */}
-      <section className="py-8">
+      <section className="py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="profile" className="flex items-center space-x-2">
-                <User className="h-4 w-4" />
-                <span>Profile</span>
-              </TabsTrigger>
-              <TabsTrigger value="orders" className="flex items-center space-x-2">
-                <Package className="h-4 w-4" />
-                <span>Orders</span>
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center space-x-2">
-                <Settings className="h-4 w-4" />
-                <span>Settings</span>
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Profile Tab */}
-            <TabsContent value="profile" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Personal Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleUpdateProfile} className="space-y-4">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Full Name</label>
-                        <Input
-                          value={userInfo.name}
-                          onChange={(e) => setUserInfo({...userInfo, name: e.target.value})}
+          <div className="max-w-2xl mx-auto space-y-6">
+            {/* Profile Photo Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile Photo</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center space-x-6">
+                  <div className="relative">
+                    {profilePhoto ? (
+                      <div className="relative">
+                        <img 
+                          src={profilePhoto} 
+                          alt="Profile" 
+                          className="w-24 h-24 rounded-full object-cover border-4 border-primary/20"
                         />
+                        <button
+                          onClick={removePhoto}
+                          className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1 hover:bg-destructive/90 transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Email</label>
-                        <Input
-                          type="email"
-                          value={userInfo.email}
-                          onChange={(e) => setUserInfo({...userInfo, email: e.target.value})}
-                        />
+                    ) : (
+                      <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center border-4 border-primary/20">
+                        <User className="h-12 w-12 text-primary" />
                       </div>
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Phone</label>
-                        <Input
-                          value={userInfo.phone}
-                          onChange={(e) => setUserInfo({...userInfo, phone: e.target.value})}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Address</label>
-                        <Input
-                          value={userInfo.address}
-                          onChange={(e) => setUserInfo({...userInfo, address: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                    <Button type="submit">Update Profile</Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Orders Tab */}
-            <TabsContent value="orders" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Order History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {orderHistory.map((order) => (
-                      <div key={order.id} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div>
-                            <h4 className="font-semibold">Order {order.id}</h4>
-                            <p className="text-sm text-muted-foreground">{order.date}</p>
-                          </div>
-                          <div className="text-right">
-                            <Badge variant={getStatusColor(order.status)}>{order.status}</Badge>
-                            <p className="font-semibold mt-1">Rs {order.total}</p>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          {order.items.map((item, index) => (
-                            <div key={index} className="flex items-center justify-between text-sm">
-                              <span>{item.name} × {item.quantity}</span>
-                              <span>Rs {(item.price * item.quantity)}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="mt-3 pt-3 border-t">
-                          <Button variant="outline" size="sm">View Details</Button>
-                        </div>
-                      </div>
-                    ))}
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      className="hidden"
+                      id="photo-upload"
+                    />
+                    <label htmlFor="photo-upload">
+                      <Button type="button" variant="outline" className="cursor-pointer" asChild>
+                        <span>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload Photo
+                        </span>
+                      </Button>
+                    </label>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      JPG, PNG or GIF (max 5MB)
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-
-
-            {/* Settings Tab */}
-            <TabsContent value="settings" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Account Settings</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
+            {/* Personal Information Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Personal Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleUpdateProfile} className="space-y-4">
                   <div>
-                    <h4 className="font-semibold mb-3">Notifications</h4>
-                    <div className="space-y-3">
-                      <label className="flex items-center space-x-2">
-                        <input type="checkbox" defaultChecked className="rounded" />
-                        <span>Email notifications for order updates</span>
-                      </label>
-                      <label className="flex items-center space-x-2">
-                        <input type="checkbox" defaultChecked className="rounded" />
-                        <span>New product announcements</span>
-                      </label>
-                      <label className="flex items-center space-x-2">
-                        <input type="checkbox" className="rounded" />
-                        <span>Promotional offers and discounts</span>
-                      </label>
-                    </div>
+                    <Label>Full Name *</Label>
+                    <Input
+                      value={profileData.name}
+                      onChange={(e) => setProfileData({...profileData, name: e.target.value})}
+                      className="mt-2"
+                      required
+                    />
                   </div>
                   
                   <div>
-                    <h4 className="font-semibold mb-3">Privacy</h4>
-                    <div className="space-y-3">
-                      <label className="flex items-center space-x-2">
-                        <input type="checkbox" defaultChecked className="rounded" />
-                        <span>Share purchase history for personalized recommendations</span>
-                      </label>
-                      <label className="flex items-center space-x-2">
-                        <input type="checkbox" className="rounded" />
-                        <span>Allow data collection for analytics</span>
-                      </label>
+                    <Label>Email Address *</Label>
+                    <Input
+                      type="email"
+                      value={profileData.email}
+                      onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                      className="mt-2"
+                      required
+                    />
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <h4 className="font-semibold mb-4">Change Password</h4>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Current Password</Label>
+                        <Input
+                          type="password"
+                          value={profileData.currentPassword}
+                          onChange={(e) => setProfileData({...profileData, currentPassword: e.target.value})}
+                          className="mt-2"
+                          placeholder="Enter current password"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label>New Password</Label>
+                        <Input
+                          type="password"
+                          value={profileData.newPassword}
+                          onChange={(e) => setProfileData({...profileData, newPassword: e.target.value})}
+                          className="mt-2"
+                          placeholder="Enter new password (min 6 characters)"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label>Confirm New Password</Label>
+                        <Input
+                          type="password"
+                          value={profileData.confirmPassword}
+                          onChange={(e) => setProfileData({...profileData, confirmPassword: e.target.value})}
+                          className="mt-2"
+                          placeholder="Confirm new password"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  <div>
-                    <h4 className="font-semibold mb-3">Account Actions</h4>
-                    <div className="space-y-3">
-                      <Button variant="outline">Change Password</Button>
-                      <Button variant="outline" onClick={() => onNavigate('contact')}>
-                        Contact Support
-                      </Button>
-                      <Button variant="destructive">Delete Account</Button>
+                  <Button type="submit" className="w-full">
+                    Update Profile
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Appearance Settings Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Appearance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    {isDarkMode ? (
+                      <Moon className="h-5 w-5 text-primary" />
+                    ) : (
+                      <Sun className="h-5 w-5 text-primary" />
+                    )}
+                    <div>
+                      <p className="font-medium">Dark Mode</p>
+                      <p className="text-sm text-muted-foreground">
+                        {isDarkMode ? 'Dark mode is enabled' : 'Light mode is enabled'}
+                      </p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                  <Switch
+                    checked={isDarkMode}
+                    onCheckedChange={toggleDarkMode}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
     </div>

@@ -1,120 +1,181 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import { Badge } from "../ui/badge";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
-import { ArrowLeft, Heart, ShoppingBag, Star, Filter, Grid, List } from "lucide-react";
+import { ArrowLeft, Heart, ShoppingBag, Star, Grid, List } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { useCart } from "../CartContext";
+import { useWishlist } from "../WishlistContext";
+import { toast } from "sonner@2.0.3";
 
 interface EternalBloomsPageProps {
   onNavigate: (page: string) => void;
 }
 
 export function EternalBloomsPage({ onNavigate }: EternalBloomsPageProps) {
-  const [wishlist, setWishlist] = useState<number[]>([]);
   const [sortBy, setSortBy] = useState("featured");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const { addItem } = useCart();
+  const { toggleItem, isInWishlist } = useWishlist();
 
-  const toggleWishlist = (productId: number) => {
-    setWishlist(prev => 
-      prev.includes(productId) 
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
+  const toggleWishlist = (product: any, category: string) => {
+    const wishlistItem = {
+      id: `${category}-${product.id}`,
+      name: product.name,
+      price: product.price,
+      originalPrice: product.originalPrice,
+      image: product.image,
+      category: category,
+      rating: product.rating,
+      reviews: product.reviews,
+      description: product.description
+    };
+    
+    const wasInWishlist = isInWishlist(`${category}-${product.id}`);
+    toggleItem(wishlistItem);
+    toast.success(
+      wasInWishlist
+        ? `${product.name} removed from wishlist` 
+        : `${product.name} added to wishlist!`
     );
   };
 
+  const handleAddToCart = (product: any, category: string) => {
+    addItem({
+      id: `${category}-${product.id}`,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      category: category
+    });
+    toast.success(`${product.name} added to cart!`);
+  };
+
+  // Eternal Blooms collection - products from various categories
   const eternalBloomsProducts = [
+    // Flowers - The main focus
     {
       id: 1,
       name: "Lavender Rose Bouquet",
-      price: 24.99,
-      originalPrice: 29.99,
+      price: 2499,
+      originalPrice: 2999,
       image: "https://images.unsplash.com/photo-1750009928696-61f5ed8eb8c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZmxvd2VycyUyMGhhbmRtYWRlJTIwcHVycGxlfGVufDF8fHx8MTc1OTI2ODAyMHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
       rating: 4.9,
       reviews: 32,
-      badge: "Bestseller",
       description: "Beautiful handcrafted lavender roses that last forever",
-      colors: ["Lavender", "Purple", "Pink"],
+      category: "flowers",
       featured: true
     },
     {
       id: 2,
       name: "Sunflower Centerpiece",
-      price: 28.99,
-      originalPrice: 35.99,
+      price: 2199,
+      originalPrice: 2799,
       image: "https://images.unsplash.com/photo-1753366556699-4be495e5bdd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwc3VuZmxvd2VyJTIweWVsbG93JTIwaGFuZG1hZGV8ZW58MXx8fHwxNzU5MjY4MDIzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
       rating: 4.8,
       reviews: 28,
-      badge: "Sale",
       description: "Bright sunflower arrangement perfect for any occasion",
-      colors: ["Yellow", "Orange", "Green"],
+      category: "flowers",
       featured: true
     },
     {
       id: 3,
       name: "Daisy Chain Garland",
-      price: 18.99,
+      price: 1899,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1749301560225-3032826b9e7f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZGFpc3klMjB3aGl0ZSUyMGZsb3dlcnN8ZW58MXx8fHwxNzU5MjY4MDI2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
       rating: 4.7,
       reviews: 19,
-      badge: "New",
       description: "Delicate daisy garland for home decoration",
-      colors: ["White", "Yellow", "Green"],
+      category: "flowers",
       featured: false
     },
     {
       id: 4,
       name: "Peony Bloom Set",
-      price: 32.99,
+      price: 2999,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1508808703020-ef18109db02f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwcGVvbnklMjBwaW5rJTIwZmxvd2Vyc3xlbnwxfHx8fDE3NTkyNjgwMzB8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
       rating: 5.0,
       reviews: 15,
-      badge: "Premium",
       description: "Luxurious peony blooms in soft pastel colors",
-      colors: ["Pink", "Peach", "Cream"],
+      category: "flowers",
       featured: true
     },
     {
       id: 5,
       name: "Wildflower Bouquet",
-      price: 22.99,
+      price: 2399,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1575175090204-0a470102fc40?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwd2lsZGZsb3dlciUyMGJvdXF1ZXQlMjBjb2xvcmZ1bHxlbnwxfHx8fDE3NTkyNjgwMzN8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
       rating: 4.8,
       reviews: 24,
-      badge: "Popular",
       description: "Mixed wildflower arrangement with natural charm",
-      colors: ["Multi", "Purple", "Blue"],
+      category: "flowers",
       featured: false
     },
     {
       id: 6,
       name: "Cherry Blossom Branch",
-      price: 26.99,
+      price: 2699,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1602750665669-6c7cc05144cb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hlcnJ5JTIwYmxvc3NvbSUyMHBpbmt8ZW58MXx8fHwxNzU5MjY4MDM2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
       rating: 4.9,
       reviews: 21,
-      badge: "Elegant",
       description: "Delicate cherry blossom branch for spring decor",
-      colors: ["Pink", "White", "Green"],
+      category: "flowers",
       featured: true
+    },
+    {
+      id: 7,
+      name: "Mini Rose Trio",
+      price: 1599,
+      originalPrice: null,
+      image: "https://images.unsplash.com/photo-1750009928696-61f5ed8eb8c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZmxvd2VycyUyMGhhbmRtYWRlJTIwcHVycGxlfGVufDF8fHx8MTc1OTI2ODAyMHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+      rating: 4.6,
+      reviews: 35,
+      description: "Set of three small roses perfect for any space",
+      category: "flowers",
+      featured: false
+    },
+    {
+      id: 8,
+      name: "Tulip Garden Set",
+      price: 2799,
+      originalPrice: null,
+      image: "https://images.unsplash.com/photo-1749301560225-3032826b9e7f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZGFpc3klMjB3aGl0ZSUyMGZsb3dlcnN8ZW58MXx8fHwxNzU5MjY4MDI2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+      rating: 4.8,
+      reviews: 27,
+      description: "Beautiful tulip collection for spring lovers",
+      category: "flowers",
+      featured: false
+    },
+    // Add a few accessories that complement flowers
+    {
+      id: 1,
+      name: "Hair Scrunchie Set",
+      price: 1299,
+      originalPrice: null,
+      image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      rating: 4.9,
+      reviews: 45,
+      description: "Set of 3 soft crochet scrunchies",
+      category: "accessories",
+      featured: false
+    },
+    {
+      id: 7,
+      name: "Jewelry Pouch",
+      price: 1999,
+      originalPrice: null,
+      image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      rating: 5.0,
+      reviews: 15,
+      description: "Delicate pouch for storing jewelry",
+      category: "accessories",
+      featured: false
     }
   ];
-
-  const getBadgeVariant = (badge: string) => {
-    switch (badge) {
-      case "Sale": return "destructive";
-      case "New": return "secondary";
-      case "Bestseller": return "default";
-      case "Premium": return "outline";
-      case "Popular": return "default";
-      case "Elegant": return "secondary";
-      default: return "outline";
-    }
-  };
 
   const sortedProducts = [...eternalBloomsProducts].sort((a, b) => {
     switch (sortBy) {
@@ -129,7 +190,7 @@ export function EternalBloomsPage({ onNavigate }: EternalBloomsPageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-to-b from-purple-50/50 to-white border-b">
+      <div className="bg-gradient-to-b from-purple-50/50 to-white dark:from-purple-950/20 dark:to-background border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between mb-6">
             <Button 
@@ -149,33 +210,20 @@ export function EternalBloomsPage({ onNavigate }: EternalBloomsPageProps) {
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
               Eternal Blooms Collection
             </h1>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="text-lg text-muted-foreground">
               Handcrafted with Love & Care - Discover our exquisite collection of crochet flowers 
               that capture the eternal beauty of nature's blooms. Each piece is meticulously crafted 
               to bring lasting elegance to your home.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" onClick={() => onNavigate('contact')}>
-                Custom Order
-              </Button>
-              <Button size="lg" variant="outline" onClick={() => onNavigate('flowers')}>
-                View All Flowers
-              </Button>
-            </div>
           </div>
         </div>
       </div>
 
       {/* Filters and Sort */}
-      <section className="py-6 bg-white border-b">
+      <section className="py-6 bg-white dark:bg-card border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
-                Filter by Color
-              </Button>
-              
               <span className="text-sm text-muted-foreground">
                 {sortedProducts.length} items
               </span>
@@ -225,13 +273,13 @@ export function EternalBloomsPage({ onNavigate }: EternalBloomsPageProps) {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className={
             viewMode === "grid" 
-              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
               : "space-y-6"
           }>
             {sortedProducts.map((product) => (
               <Card 
-                key={product.id} 
-                className={`group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white overflow-hidden ${
+                key={`${product.category}-${product.id}`} 
+                className={`group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white dark:bg-card overflow-hidden ${
                   viewMode === "list" ? "flex" : ""
                 }`}
               >
@@ -242,34 +290,32 @@ export function EternalBloomsPage({ onNavigate }: EternalBloomsPageProps) {
                     <ImageWithFallback
                       src={product.image}
                       alt={product.name}
-                      className={`object-cover group-hover:scale-105 transition-transform duration-500 ${
+                      className={`object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer ${
                         viewMode === "list" ? "w-full h-full" : "w-full h-64"
                       }`}
+                      onClick={() => onNavigate(`product-${product.category}-${product.id}`)}
                     />
-                    
-                    <Badge 
-                      className="absolute top-3 left-3 shadow-sm" 
-                      variant={getBadgeVariant(product.badge)}
-                    >
-                      {product.badge}
-                    </Badge>
                     
                     <Button
                       variant="ghost"
                       size="icon"
-                      className={`absolute top-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white/90 h-9 w-9 rounded-full shadow-sm ${
-                        wishlist.includes(product.id) ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'
-                      }`}
-                      onClick={() => toggleWishlist(product.id)}
+                      className="absolute top-3 right-3 bg-white/80 dark:bg-black/50 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-black/70 h-9 w-9 rounded-full shadow-sm"
+                      onClick={() => toggleWishlist(product, product.category)}
                     >
-                      <Heart className={`h-4 w-4 ${wishlist.includes(product.id) ? 'fill-current' : ''}`} />
+                      <Heart 
+                        className={`h-4 w-4 ${
+                          isInWishlist(`${product.category}-${product.id}`) 
+                            ? 'fill-red-500 text-red-500' 
+                            : 'text-gray-600 dark:text-gray-300'
+                        }`} 
+                      />
                     </Button>
                     
                     {viewMode === "grid" && (
                       <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <Button 
                           className="w-full bg-primary/90 backdrop-blur-sm hover:bg-primary"
-                          onClick={() => onNavigate('cart')}
+                          onClick={() => handleAddToCart(product, product.category)}
                         >
                           <ShoppingBag className="h-4 w-4 mr-2" />
                           Add to Cart
@@ -288,7 +334,7 @@ export function EternalBloomsPage({ onNavigate }: EternalBloomsPageProps) {
                               className={`h-4 w-4 ${
                                 i < Math.floor(product.rating)
                                   ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-300'
+                                  : 'text-gray-300 dark:text-gray-600'
                               }`}
                             />
                           ))}
@@ -298,42 +344,41 @@ export function EternalBloomsPage({ onNavigate }: EternalBloomsPageProps) {
                         </div>
                       </div>
                       
-                      <h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                      <h3 
+                        className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors cursor-pointer"
+                        onClick={() => onNavigate(`product-${product.category}-${product.id}`)}
+                      >
                         {product.name}
                       </h3>
                       
                       <p className="text-sm text-muted-foreground mb-3">
                         {product.description}
                       </p>
-                      
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {product.colors.map((color) => (
-                          <Badge key={color} variant="outline" className="text-xs">
-                            {color}
-                          </Badge>
-                        ))}
-                      </div>
                     </div>
                     
                     <div className={`flex items-center ${viewMode === "list" ? "justify-between" : "justify-between"}`}>
                       <div className="flex items-center space-x-2">
-                        <span className="text-lg font-semibold text-foreground">
-                          ${product.price}
+                        <span className="text-xl font-bold text-primary">
+                          Rs {product.price}
                         </span>
                         {product.originalPrice && (
                           <span className="text-sm text-muted-foreground line-through">
-                            ${product.originalPrice}
+                            Rs {product.originalPrice}
                           </span>
                         )}
                       </div>
                       {viewMode === "list" && (
-                        <Button onClick={() => onNavigate('cart')}>
+                        <Button onClick={() => handleAddToCart(product, product.category)}>
                           <ShoppingBag className="h-4 w-4 mr-2" />
                           Add to Cart
                         </Button>
                       )}
                       {viewMode === "grid" && (
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => onNavigate(`product-${product.category}-${product.id}`)}
+                        >
                           View Details
                         </Button>
                       )}

@@ -61,7 +61,7 @@ export function Testimonials() {
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-b from-white to-purple-50/30">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-background to-purple-50/30 dark:from-background dark:to-black">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
@@ -78,7 +78,7 @@ export function Testimonials() {
           {testimonials.map((testimonial) => (
             <Card 
               key={testimonial.id} 
-              className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-shadow group"
+              className="border-0 shadow-lg bg-card hover:shadow-xl transition-shadow group"
             >
               <CardContent className="p-8 relative">
                 {/* Quote Icon */}

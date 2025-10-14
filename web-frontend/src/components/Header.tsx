@@ -36,10 +36,10 @@ export function Header({ onNavigate }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm">
       <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex h-24 items-center">
-          {/* Mobile Menu - Far Left */}
+        <div className="flex h-24 items-center justify-between gap-4">
+          {/* Left Side - Mobile Menu and Desktop Navigation */}
           <div className="flex items-center space-x-4 shrink-0">
             {/* Mobile Menu */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -84,8 +84,8 @@ export function Header({ onNavigate }: HeaderProps) {
             </nav>
           </div>
 
-          {/* Search Bar - Full Width Center */}
-          <div className="flex-1 mx-6 max-w-2xl">
+          {/* Search Bar - Expanded */}
+          <div className="flex-1">
             <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -98,7 +98,7 @@ export function Header({ onNavigate }: HeaderProps) {
             </form>
           </div>
 
-          {/* Right Side - Logo and Icons */}
+          {/* Right Side - Icons and Logo */}
           <div className="flex items-center space-x-4 shrink-0">
             <Button 
               variant="ghost" 
@@ -128,11 +128,11 @@ export function Header({ onNavigate }: HeaderProps) {
               </Badge>
             </Button>
             
-            {/* Logo - Far Right */}
+            {/* Logo - Right Aligned */}
             <img 
               src={logo}
               alt="Piko and Pearl - handmade crochet shop"
-              className="h-20 w-auto cursor-pointer hover:opacity-80 transition-opacity ml-4"
+              className="h-20 w-auto cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => onNavigate?.('home')}
             />
           </div>

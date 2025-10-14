@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
@@ -8,8 +8,9 @@ import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
 import { Badge } from "../ui/badge";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
-import { ArrowLeft, CreditCard, Truck, MapPin, Phone, Mail, ShoppingBag } from "lucide-react";
+import { ArrowLeft, CreditCard, Truck, MapPin, Phone, Mail, ShoppingBag, Lock } from "lucide-react";
 import { useCart } from "../CartContext";
+import { useAuth } from "../AuthContext";
 import { toast } from "sonner@2.0.3";
 
 interface CheckoutPageProps {
@@ -17,6 +18,7 @@ interface CheckoutPageProps {
 }
 
 export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
+  const { isAuthenticated, user } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [shippingInfo, setShippingInfo] = useState({
     fullName: "",
@@ -29,6 +31,25 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
   });
 
   const { items: cartItems, getTotalPrice, clearCart } = useCart();
+
+  // Redirect to profile page if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to continue with checkout");
+      onNavigate('profile');
+    }
+  }, [isAuthenticated, onNavigate]);
+
+  // Pre-fill form with user data if authenticated
+  useEffect(() => {
+    if (user && isAuthenticated) {
+      setShippingInfo(prev => ({
+        ...prev,
+        fullName: user.name,
+        email: user.email
+      }));
+    }
+  }, [user, isAuthenticated]);
 
   const subtotal = getTotalPrice();
   const shipping = subtotal > 15000 ? 0 : 500; // Free shipping over Rs 15,000, otherwise Rs 500
@@ -54,11 +75,16 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
     onNavigate('home');
   };
 
+  // Don't render if not authenticated (redirect happens in useEffect)
+  if (!isAuthenticated) {
+    return null;
+  }
+
   // Show empty state if no items in cart
   if (cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="bg-white border-b">
+        <div className="bg-background border-b">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <Button 
               variant="ghost" 
@@ -94,7 +120,7 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-background border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <Button 

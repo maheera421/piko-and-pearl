@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import { Badge } from "../ui/badge";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 import { Heart, ShoppingBag, Star, ArrowLeft, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
@@ -16,8 +15,6 @@ interface BagsPageProps {
 export function BagsPage({ onNavigate }: BagsPageProps) {
   const [sortBy, setSortBy] = useState("featured");
   const [priceRange, setPriceRange] = useState("all");
-  const [colorFilter, setColorFilter] = useState("all");
-  const [showFilters, setShowFilters] = useState(false);
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
 
@@ -31,7 +28,6 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
       category: 'Bags',
       rating: bag.rating,
       reviews: bag.reviews,
-      badge: bag.badge,
       description: bag.description
     };
     
@@ -64,9 +60,7 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
       image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.9,
       reviews: 18,
-      badge: "Bestseller",
-      description: "Spacious handwoven tote perfect for everyday use",
-      colors: ["Natural", "Purple", "Pink"]
+      description: "Spacious handwoven tote perfect for everyday use"
     },
     {
       id: 2,
@@ -76,9 +70,7 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
       image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.7,
       reviews: 24,
-      badge: "Sale",
-      description: "Compact crossbody for hands-free convenience",
-      colors: ["Lavender", "Cream", "Sage"]
+      description: "Compact crossbody for hands-free convenience"
     },
     {
       id: 3,
@@ -88,9 +80,7 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
       image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.8,
       reviews: 15,
-      badge: "New",
-      description: "Eco-friendly market bag with sturdy handles",
-      colors: ["Beige", "Olive", "Dusty Rose"]
+      description: "Eco-friendly market bag with sturdy handles"
     },
     {
       id: 4,
@@ -100,9 +90,7 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
       image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.6,
       reviews: 12,
-      badge: "Elegant",
-      description: "Sophisticated clutch for special occasions",
-      colors: ["Black", "Gold", "Silver"]
+      description: "Sophisticated clutch for special occasions"
     },
     {
       id: 5,
@@ -112,9 +100,7 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
       image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.9,
       reviews: 21,
-      badge: "Popular",
-      description: "Trendy bucket style with drawstring closure",
-      colors: ["Tan", "Mauve", "Mint"]
+      description: "Trendy bucket style with drawstring closure"
     },
     {
       id: 6,
@@ -124,9 +110,7 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
       image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.8,
       reviews: 9,
-      badge: "Professional",
-      description: "Work-ready tote with laptop compartment",
-      colors: ["Navy", "Charcoal", "Burgundy"]
+      description: "Work-ready tote with laptop compartment"
     }
   ];
 
@@ -151,13 +135,6 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
         }
       }
       
-      // Color filter
-      if (colorFilter !== "all") {
-        return bag.colors.some(color => 
-          color.toLowerCase().includes(colorFilter.toLowerCase())
-        );
-      }
-      
       return true;
     })
     .sort((a, b) => {
@@ -175,19 +152,10 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
       }
     });
 
-  const getBadgeVariant = (badge: string) => {
-    switch (badge) {
-      case "Sale": return "destructive";
-      case "New": return "secondary";
-      case "Bestseller": return "default";
-      default: return "outline";
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-40">
+      <div className="bg-white dark:bg-card border-b sticky top-0 z-40">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <Button 
@@ -198,118 +166,69 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
               <ArrowLeft className="h-4 w-4" />
               <span>Back to Home</span>
             </Button>
-            <h1 className="text-2xl font-bold text-primary">Bags Collection</h1>
+            <h1 className="text-2xl font-bold text-primary">Crochet Bags Collection</h1>
             <div className="w-32"></div>
           </div>
         </div>
       </div>
 
       {/* Hero Section */}
-      <section className="py-12 bg-gradient-to-b from-purple-50/50 to-white">
+      <section className="py-12 bg-gradient-to-b from-purple-50/50 to-white dark:from-purple-950/20 dark:to-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Handcrafted Bags
+              Handcrafted Crochet Bags
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              From everyday totes to special occasion clutches, each bag is carefully crafted for style and functionality.
+              Discover our collection of beautiful, functional bags. Each piece is lovingly handmade with attention to detail and quality.
             </p>
           </div>
         </div>
       </section>
 
       {/* Filters and Sorting */}
-      <section className="py-6 bg-white border-b">
+      <section className="py-6 bg-white dark:bg-card border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col space-y-4">
-            <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
-              <div className="flex items-center space-x-4">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowFilters(!showFilters)}
-                >
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filters
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  {filteredAndSortedBags.length} products
-                </span>
-              </div>
+          <div className="flex flex-col lg:flex-row items-center justify-between space-y-4 lg:space-y-0">
+            <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">Sort by:</span>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="featured">Featured</SelectItem>
-                    <SelectItem value="price-low">Price: Low to High</SelectItem>
-                    <SelectItem value="price-high">Price: High to Low</SelectItem>
-                    <SelectItem value="newest">Newest First</SelectItem>
-                    <SelectItem value="rating">Highest Rated</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Filter className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">Filters:</span>
               </div>
+              
+              <Select value={priceRange} onValueChange={setPriceRange}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Price Range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Prices</SelectItem>
+                  <SelectItem value="under-2000">Under Rs 2,000</SelectItem>
+                  <SelectItem value="2000-2500">Rs 2,000 - 2,500</SelectItem>
+                  <SelectItem value="2500-3000">Rs 2,500 - 3,000</SelectItem>
+                  <SelectItem value="over-3000">Over Rs 3,000</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <span className="text-sm text-muted-foreground">
+                {filteredAndSortedBags.length} products
+              </span>
             </div>
             
-            {/* Filter Options */}
-            {showFilters && (
-              <div className="border-t pt-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Price Range Filter */}
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Price Range (Rs)</label>
-                    <Select value={priceRange} onValueChange={setPriceRange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Prices" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Prices</SelectItem>
-                        <SelectItem value="under-2000">Under Rs 2,000</SelectItem>
-                        <SelectItem value="2000-2500">Rs 2,000 - Rs 2,500</SelectItem>
-                        <SelectItem value="2500-3000">Rs 2,500 - Rs 3,000</SelectItem>
-                        <SelectItem value="over-3000">Over Rs 3,000</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  {/* Color Filter */}
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Color</label>
-                    <Select value={colorFilter} onValueChange={setColorFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Colors" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Colors</SelectItem>
-                        <SelectItem value="purple">Purple</SelectItem>
-                        <SelectItem value="pink">Pink</SelectItem>
-                        <SelectItem value="natural">Natural</SelectItem>
-                        <SelectItem value="black">Black</SelectItem>
-                        <SelectItem value="cream">Cream</SelectItem>
-                        <SelectItem value="navy">Navy</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  {/* Clear Filters */}
-                  <div className="flex items-end">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        setPriceRange("all");
-                        setColorFilter("all");
-                      }}
-                      className="w-full"
-                    >
-                      Clear Filters
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-muted-foreground">Sort by:</span>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="featured">Featured</SelectItem>
+                  <SelectItem value="price-low">Price: Low to High</SelectItem>
+                  <SelectItem value="price-high">Price: High to Low</SelectItem>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="rating">Highest Rated</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </section>
@@ -321,7 +240,7 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
             {filteredAndSortedBags.map((bag) => (
               <Card 
                 key={bag.id} 
-                className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white overflow-hidden"
+                className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white dark:bg-card overflow-hidden"
               >
                 <CardContent className="p-0">
                   <div className="relative overflow-hidden">
@@ -332,24 +251,17 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
                       onClick={() => onNavigate(`product-bags-${bag.id}`)}
                     />
                     
-                    <Badge 
-                      className="absolute top-3 left-3 shadow-sm" 
-                      variant={getBadgeVariant(bag.badge)}
-                    >
-                      {bag.badge}
-                    </Badge>
-                    
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white/90 h-9 w-9 rounded-full shadow-sm"
+                      className="absolute top-3 right-3 bg-white/80 dark:bg-black/50 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-black/70 h-9 w-9 rounded-full shadow-sm"
                       onClick={() => toggleWishlist(bag)}
                     >
                       <Heart 
                         className={`h-4 w-4 ${
                           isInWishlist(`bags-${bag.id}`) 
                             ? 'fill-red-500 text-red-500' 
-                            : 'text-gray-600'
+                            : 'text-gray-600 dark:text-gray-300'
                         }`} 
                       />
                     </Button>
@@ -374,7 +286,7 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
                             className={`h-4 w-4 ${
                               i < Math.floor(bag.rating)
                                 ? 'fill-yellow-400 text-yellow-400'
-                                : 'text-gray-300'
+                                : 'text-gray-300 dark:text-gray-600'
                             }`}
                           />
                         ))}
@@ -394,44 +306,25 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
                     <p className="text-sm text-muted-foreground mb-3">
                       {bag.description}
                     </p>
-
-                    <div className="flex items-center space-x-2 mb-4">
-                      <span className="text-xs text-muted-foreground">Colors:</span>
-                      <div className="flex space-x-1">
-                        {bag.colors.slice(0, 3).map((color, index) => (
-                          <div
-                            key={index}
-                            className="w-4 h-4 rounded-full border border-gray-200"
-                            style={{
-                              backgroundColor: color.toLowerCase() === 'natural' ? '#f5f5dc' :
-                                            color.toLowerCase() === 'dusty rose' ? '#dcae96' :
-                                            color.toLowerCase() === 'sage' ? '#9caf88' :
-                                            color.toLowerCase()
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
                     
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-2">
-                        <span className="text-lg font-semibold text-foreground">
-                          Rs {bag.price}
-                        </span>
+                        <span className="text-xl font-bold text-primary">Rs {bag.price}</span>
                         {bag.originalPrice && (
                           <span className="text-sm text-muted-foreground line-through">
                             Rs {bag.originalPrice}
                           </span>
                         )}
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => onNavigate(`product-bags-${bag.id}`)}
-                      >
-                        View Details
-                      </Button>
                     </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => onNavigate(`product-bags-${bag.id}`)}
+                    >
+                      View Details
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
