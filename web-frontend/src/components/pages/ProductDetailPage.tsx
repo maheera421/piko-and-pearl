@@ -8,7 +8,9 @@ import { useWishlist } from "../WishlistContext";
 import { toast } from "sonner@2.0.3";
 import { Separator } from "../ui/separator";
 import { Progress } from "../ui/progress";
-import logo from "figma:asset/7f6b47b006708cf50d89912cce5429f878304465.png";
+import { getProductReviews, calculateAverageRating, getReviewCount } from "../ProductData";
+import { Header } from "../Header";
+import { Footer } from "../Footer";
 
 interface ProductDetailPageProps {
   onNavigate: (page: string, query?: string, data?: any) => void;
@@ -39,8 +41,18 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
 
   const { product, category, allProducts } = productData;
 
+  // Get reviews for this specific product
+  const reviews = getProductReviews(category, product.id);
+  const averageRating = calculateAverageRating(reviews);
+  const reviewCount = getReviewCount(reviews);
+
   // Determine the category page to go back to
   const getCategoryPage = () => {
+    // If previousPage is set and it's either 'home' or 'featured', use that
+    if (previousPage === 'home' || previousPage === 'featured') {
+      return previousPage;
+    }
+    
     const categoryLower = category.toLowerCase();
     // Map category names to their page routes
     const categoryMap: { [key: string]: string } = {
@@ -103,45 +115,6 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
     return descriptions[product.name] || product.description + ". Handcrafted with premium materials and attention to detail. Each piece is unique and made with love in Pakistan.";
   };
 
-  // Mock reviews data
-  const reviews = [
-    {
-      id: 1,
-      author: "Ayesha Khan",
-      rating: 5,
-      date: "2 weeks ago",
-      comment: "Absolutely love this! The quality is amazing and the colors are even more beautiful in person. Highly recommend!"
-    },
-    {
-      id: 2,
-      author: "Fatima Ali",
-      rating: 5,
-      date: "1 month ago",
-      comment: "Beautiful handmade item. The craftsmanship is outstanding. Worth every rupee!"
-    },
-    {
-      id: 3,
-      author: "Sara Ahmed",
-      rating: 4,
-      date: "1 month ago",
-      comment: "Very nice product! Delivery was quick and packaging was excellent. Only minor color difference from the photo."
-    },
-    {
-      id: 4,
-      author: "Zainab Hassan",
-      rating: 5,
-      date: "2 months ago",
-      comment: "This is my third purchase from Piko and Pearl. Never disappointed! The attention to detail is incredible."
-    },
-    {
-      id: 5,
-      author: "Mariam Siddiqui",
-      rating: 5,
-      date: "2 months ago",
-      comment: "Perfect gift! My friend loved it. Such unique and beautiful work. Will order again!"
-    }
-  ];
-
   // Calculate rating distribution
   const getRatingDistribution = () => {
     const distribution = [0, 0, 0, 0, 0];
@@ -203,22 +176,7 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-background border-b sticky top-0 z-40">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Button 
-              variant="ghost" 
-              onClick={() => onNavigate(backPage)}
-              className="flex items-center space-x-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back</span>
-            </Button>
-            <h1 className="text-3xl font-semibold text-primary">{product.name}</h1>
-            <div className="w-20"></div>
-          </div>
-        </div>
-      </div>
+      <Header onNavigate={onNavigate} />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
@@ -265,14 +223,14 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
                     <Star
                       key={i}
                       className={`h-5 w-5 ${
-                        i < Math.floor(product.rating)
+                        i < Math.floor(averageRating)
                           ? 'fill-yellow-400 text-yellow-400'
                           : 'text-gray-300'
                       }`}
                     />
                   ))}
                   <span className="text-sm text-muted-foreground ml-2">
-                    {product.rating} ({product.reviews} reviews)
+                    {averageRating} ({reviewCount} reviews)
                   </span>
                 </div>
               </div>
@@ -441,13 +399,13 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
                 <Card>
                   <CardContent className="p-6 text-center">
                     <div className="mb-4">
-                      <div className="text-5xl mb-2">{product.rating}</div>
+                      <div className="text-5xl mb-2">{averageRating}</div>
                       <div className="flex items-center justify-center mb-2">
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
                             className={`h-5 w-5 ${
-                              i < Math.floor(product.rating)
+                              i < Math.floor(averageRating)
                                 ? 'fill-yellow-400 text-yellow-400'
                                 : 'text-gray-300'
                             }`}
@@ -455,7 +413,7 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
                         ))}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Based on {product.reviews} reviews
+                        Based on {reviewCount} reviews
                       </p>
                     </div>
                   </CardContent>
@@ -667,6 +625,9 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
           </div>
         )}
       </div>
+
+      {/* Footer */}
+      <Footer onNavigate={onNavigate} />
     </div>
   );
 }

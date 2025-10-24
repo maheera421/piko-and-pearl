@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useCart } from "../CartContext";
 import { useWishlist } from "../WishlistContext";
 import { toast } from "sonner@2.0.3";
+import { getCategoryProductsWithReviews } from "../ProductData";
 
 interface BagCharmsPageProps {
   onNavigate: (page: string) => void;
@@ -51,15 +52,13 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
     toast.success(`${charm.name} added to cart!`);
   };
 
-  const allCharms = [
+  const baseCharms = [
     {
       id: 1,
       name: "Butterfly Charm",
       price: 899,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.8,
-      reviews: 22,
       description: "Delicate butterfly design with pearl accents"
     },
     {
@@ -68,8 +67,6 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
       price: 699,
       originalPrice: 899,
       image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.7,
-      reviews: 18,
       description: "Elegant tassel charm in various colors"
     },
     {
@@ -78,8 +75,6 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
       price: 799,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.9,
-      reviews: 25,
       description: "Cute mini flower perfect for any bag"
     },
     {
@@ -88,8 +83,6 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
       price: 999,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.6,
-      reviews: 14,
       description: "Contemporary geometric design"
     },
     {
@@ -98,8 +91,6 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
       price: 599,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.8,
-      reviews: 31,
       description: "Fluffy pom pom in vibrant colors"
     },
     {
@@ -108,11 +99,12 @@ export function BagCharmsPage({ onNavigate }: BagCharmsPageProps) {
       price: 849,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.9,
-      reviews: 19,
       description: "Sweet heart design with decorative stitching"
     }
   ];
+
+  // Get all charms with calculated ratings and review counts
+  const allCharms = getCategoryProductsWithReviews(baseCharms, 'charms');
 
   // Filtering and sorting logic
   const getFilteredAndSortedCharms = () => {

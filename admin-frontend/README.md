@@ -1,5 +1,5 @@
 
-  # Admin dashboard for Piko and Pearl
+  # JAdmin Dashboard for Piko and Pearl
 
 
   ## Running the code

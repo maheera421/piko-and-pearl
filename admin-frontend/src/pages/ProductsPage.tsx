@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Grid3X3, List, Search, Trash2, Layers } from 'lucide-react';
+import { Plus, Grid3X3, List, Search, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -7,7 +7,6 @@ import { Input } from '../components/ui/input';
 import { ProductsTable } from '../components/products/ProductsTable';
 import { ProductsGrid } from '../components/products/ProductsGrid';
 import { ProductFilters } from '../components/products/ProductFilters';
-import { CreateCollectionDialog } from '../components/products/CreateCollectionDialog';
 import { CollectionsTable } from '../components/products/CollectionsTable';
 import { Product } from '../data/mockData';
 import { toast } from 'sonner';
@@ -35,7 +34,6 @@ export function ProductsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
-  const [showCreateCollectionDialog, setShowCreateCollectionDialog] = useState(false);
   const itemsPerPage = 12;
 
   // Filter products
@@ -116,22 +114,13 @@ export function ProductsPage() {
         </div>
         <div className="flex items-center gap-2">
           {selectedProducts.length > 0 && (
-            <>
-              <Button 
-                variant="outline"
-                onClick={() => setShowCreateCollectionDialog(true)}
-              >
-                <Layers className="h-4 w-4 mr-2" />
-                Create Collection ({selectedProducts.length})
-              </Button>
-              <Button 
-                variant="destructive"
-                onClick={() => setShowBulkDeleteDialog(true)}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete ({selectedProducts.length})
-              </Button>
-            </>
+            <Button 
+              variant="destructive"
+              onClick={() => setShowBulkDeleteDialog(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete ({selectedProducts.length})
+            </Button>
           )}
           <Button 
             className="bg-primary hover:bg-primary/90"
@@ -247,17 +236,6 @@ export function ProductsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Create Collection Dialog */}
-      <CreateCollectionDialog
-        open={showCreateCollectionDialog}
-        onOpenChange={setShowCreateCollectionDialog}
-        selectedProducts={selectedProducts}
-        productNames={products
-          .filter(p => selectedProducts.includes(p.id))
-          .map(p => p.name)
-        }
-      />
     </div>
   );
 }

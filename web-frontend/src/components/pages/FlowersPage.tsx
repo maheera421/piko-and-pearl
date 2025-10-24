@@ -7,10 +7,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useCart } from "../CartContext";
 import { useWishlist } from "../WishlistContext";
 import { toast } from "sonner@2.0.3";
+import { getCategoryProductsWithReviews } from "../ProductData";
+import { Header } from "../Header";
+import { Footer } from "../Footer";
 
 interface FlowersPageProps {
   onNavigate: (page: string) => void;
 }
+
+// Helper function to create URL-friendly slugs
+const createSlug = (text: string): string => {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+};
 
 export function FlowersPage({ onNavigate }: FlowersPageProps) {
   const [sortBy, setSortBy] = useState("featured");
@@ -51,15 +62,13 @@ export function FlowersPage({ onNavigate }: FlowersPageProps) {
     toast.success(`${flower.name} added to cart!`);
   };
 
-  const allFlowers = [
+  const baseFlowers = [
     {
       id: 1,
       name: "Lavender Rose Bouquet",
       price: 2499,
       originalPrice: 2999,
       image: "https://images.unsplash.com/photo-1750009928696-61f5ed8eb8c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZmxvd2VycyUyMGhhbmRtYWRlJTIwcHVycGxlfGVufDF8fHx8MTc1OTI2ODAyMHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      rating: 4.9,
-      reviews: 32,
       description: "Beautiful handcrafted lavender roses that last forever"
     },
     {
@@ -67,9 +76,7 @@ export function FlowersPage({ onNavigate }: FlowersPageProps) {
       name: "Sunflower Centerpiece",
       price: 2199,
       originalPrice: 2799,
-      image: "https://images.unsplash.com/photo-1753366556699-4be495e5bdd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwc3VuZmxvd2VyJTIweWVsbG93JTIwaGFuZG1hZGV8ZW58MXx8fHwxNzU5MjY4MDIzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      rating: 4.8,
-      reviews: 28,
+      image: "https://images.unsplash.com/photo-1753366556699-4be495e5bdd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwc3VuZmxvd2VyJTIweYVsb3dlJTIwaGFuZG1hZGV8ZW58MXx8fHwxNzU5MjY4MDIzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
       description: "Bright sunflower arrangement perfect for any occasion"
     },
     {
@@ -78,8 +85,6 @@ export function FlowersPage({ onNavigate }: FlowersPageProps) {
       price: 1899,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1749301560225-3032826b9e7f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZGFpc3klMjB3aGl0ZSUyMGZsb3dlcnN8ZW58MXx8fHwxNzU5MjY4MDI2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      rating: 4.7,
-      reviews: 19,
       description: "Delicate daisy garland for home decoration"
     },
     {
@@ -88,8 +93,6 @@ export function FlowersPage({ onNavigate }: FlowersPageProps) {
       price: 2999,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1508808703020-ef18109db02f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwcGVvbnklMjBwaW5rJTIwZmxvd2Vyc3xlbnwxfHx8fDE3NTkyNjgwMzB8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      rating: 5.0,
-      reviews: 15,
       description: "Luxurious peony blooms in soft pastel colors"
     },
     {
@@ -98,8 +101,6 @@ export function FlowersPage({ onNavigate }: FlowersPageProps) {
       price: 2399,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1575175090204-0a470102fc40?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwd2lsZGZsb3dlciUyMGJvdXF1ZXQlMjBjb2xvcmZ1bHxlbnwxfHx8fDE3NTkyNjgwMzN8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      rating: 4.8,
-      reviews: 24,
       description: "Mixed wildflower arrangement with natural charm"
     },
     {
@@ -108,8 +109,6 @@ export function FlowersPage({ onNavigate }: FlowersPageProps) {
       price: 2699,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1602750665669-6c7cc05144cb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hlcnJ5JTIwYmxvc3NvbSUyMHBpbmt8ZW58MXx8fHwxNzU5MjY4MDM2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      rating: 4.9,
-      reviews: 21,
       description: "Delicate cherry blossom branch for spring decor"
     },
     {
@@ -118,8 +117,6 @@ export function FlowersPage({ onNavigate }: FlowersPageProps) {
       price: 1599,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1750009928696-61f5ed8eb8c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZmxvd2VycyUyMGhhbmRtYWRlJTIwcHVycGxlfGVufDF8fHx8MTc1OTI2ODAyMHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      rating: 4.6,
-      reviews: 35,
       description: "Set of three small roses perfect for any space"
     },
     {
@@ -128,11 +125,12 @@ export function FlowersPage({ onNavigate }: FlowersPageProps) {
       price: 2799,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1749301560225-3032826b9e7f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZGFpc3klMjB3aGl0ZSUyMGZsb3dlcnN8ZW58MXx8fHwxNzU5MjY4MDI2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      rating: 4.8,
-      reviews: 27,
       description: "Beautiful tulip collection in spring colors"
     }
   ];
+
+  // Get all flowers with calculated ratings and review counts
+  const allFlowers = getCategoryProductsWithReviews(baseFlowers, 'flowers');
 
   // Filtering and sorting logic
   const getFilteredAndSortedFlowers = () => {
@@ -172,31 +170,16 @@ export function FlowersPage({ onNavigate }: FlowersPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-white dark:bg-card border-b sticky top-0 z-40">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Button 
-              variant="ghost" 
-              onClick={() => onNavigate('home')}
-              className="flex items-center space-x-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to Home</span>
-            </Button>
-            <h1 className="text-2xl font-bold text-primary">Crochet Flowers Collection</h1>
-            <div className="w-32"></div>
-          </div>
-        </div>
-      </div>
+      {/* Consistent Header */}
+      <Header onNavigate={onNavigate} />
 
       {/* Hero Section */}
       <section className="py-12 bg-gradient-to-b from-purple-50/50 to-white dark:from-purple-950/20 dark:to-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Beautiful Crochet Flowers
-            </h2>
+            <h1 className="text-3xl md:text-4xl text-foreground mb-4" style={{ fontWeight: 600 }}>
+              Handmade Crochet Flowers
+            </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Handcrafted floral arrangements that bloom forever. Each piece captures the delicate beauty of nature in soft, lasting yarn.
             </p>
@@ -265,7 +248,7 @@ export function FlowersPage({ onNavigate }: FlowersPageProps) {
                       src={flower.image}
                       alt={flower.name}
                       className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
-                      onClick={() => onNavigate(`product-flowers-${flower.id}`)}
+                      onClick={() => onNavigate(`product-flowers-${createSlug(flower.name)}`)}
                     />
                     
                     <Button
@@ -315,7 +298,7 @@ export function FlowersPage({ onNavigate }: FlowersPageProps) {
                     
                     <h3 
                       className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors cursor-pointer"
-                      onClick={() => onNavigate(`product-flowers-${flower.id}`)}
+                      onClick={() => onNavigate(`product-flowers-${createSlug(flower.name)}`)}
                     >
                       {flower.name}
                     </h3>
@@ -338,7 +321,7 @@ export function FlowersPage({ onNavigate }: FlowersPageProps) {
                     <Button 
                       variant="outline" 
                       className="w-full"
-                      onClick={() => onNavigate(`product-flowers-${flower.id}`)}
+                      onClick={() => onNavigate(`product-flowers-${createSlug(flower.name)}`)}
                     >
                       View Details
                     </Button>
@@ -349,6 +332,9 @@ export function FlowersPage({ onNavigate }: FlowersPageProps) {
           </div>
         </div>
       </section>
+
+      {/* Consistent Footer */}
+      <Footer />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -13,30 +13,36 @@ export function EditCategoryPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { categories, updateCategory } = useApp();
-  
+
   const category = categories.find((cat) => cat.id === id);
 
   const [formData, setFormData] = useState({
     categoryName: '',
     slug: '',
+    categoryImage: '',
     metaTitle: '',
     metaDescription: '',
-    keywords: '',
     h1Heading: '',
     introParagraph: '',
+    keywords: '',
   });
   const [isUpdating, setIsUpdating] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     if (category) {
       setFormData({
         categoryName: category.name,
         slug: category.slug,
+        categoryImage: category.image || '',
         metaTitle: category.metaTitle || '',
         metaDescription: category.metaDescription || '',
-        keywords: category.keywords || '',
         h1Heading: category.h1Heading || category.name,
         introParagraph: category.introParagraph || '',
+        keywords: (category as any).keywords || '',
       });
     } else {
       // Category not found, redirect back
@@ -48,7 +54,7 @@ export function EditCategoryPage() {
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
-      
+
       // Auto-generate slug from category name
       if (field === 'categoryName') {
         updated.slug = value
@@ -56,14 +62,14 @@ export function EditCategoryPage() {
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/^-|-$/g, '');
       }
-      
+
       return updated;
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!id) return;
 
     // Validation
@@ -83,7 +89,7 @@ export function EditCategoryPage() {
     }
 
     setIsUpdating(true);
-    
+
     // Simulate update delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -91,6 +97,7 @@ export function EditCategoryPage() {
     updateCategory(id, {
       name: formData.categoryName,
       slug: formData.slug,
+      image: formData.categoryImage,
       metaTitle: formData.metaTitle,
       metaDescription: formData.metaDescription,
       keywords: formData.keywords,
@@ -169,6 +176,22 @@ export function EditCategoryPage() {
               </div>
 
               <div>
+                <Label htmlFor="categoryImage">
+                  Category Image (URL)
+                </Label>
+                <Input
+                  id="categoryImage"
+                  placeholder="https://..."
+                  value={formData.categoryImage}
+                  onChange={(e) => handleInputChange('categoryImage', e.target.value)}
+                  className="mt-1.5"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Note: Image should be less than 500 KB.
+                </p>
+              </div>
+
+              <div>
                 <Label htmlFor="h1Heading">
                   H1 Heading <span className="text-destructive">*</span>
                 </Label>
@@ -192,7 +215,7 @@ export function EditCategoryPage() {
             <h3 className="mb-6">Category Content</h3>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="introParagraph">Intro Paragraph</Label>
+                <Label htmlFor="introParagraph">Intro paragraph / p tag</Label>
                 <Textarea
                   id="introParagraph"
                   placeholder="Welcome to our collection of handmade crochet flowers..."
@@ -245,16 +268,16 @@ export function EditCategoryPage() {
               </div>
 
               <div>
-                <Label htmlFor="keywords">Keywords</Label>
+                <Label htmlFor="keywords">SEO Keywords</Label>
                 <Input
                   id="keywords"
-                  placeholder="crochet flowers, handmade flowers, bouquet, gift"
+                  placeholder="e.g. handmade crochet, crochet flowers, crochet bags"
                   value={formData.keywords}
                   onChange={(e) => handleInputChange('keywords', e.target.value)}
                   className="mt-1.5"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Comma-separated keywords for SEO
+                  Comma-separated keywords for SEO (optional)
                 </p>
               </div>
             </div>

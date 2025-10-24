@@ -1,0 +1,1 @@
+// This file has been removed as part of cleanup - company pages no longer needed

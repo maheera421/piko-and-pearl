@@ -7,10 +7,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useCart } from "../CartContext";
 import { useWishlist } from "../WishlistContext";
 import { toast } from "sonner@2.0.3";
+import { getCategoryProductsWithReviews } from "../ProductData";
+import { Header } from "../Header";
+import { Footer } from "../Footer";
 
 interface BagsPageProps {
   onNavigate: (page: string) => void;
 }
+
+// Helper function to create URL-friendly slugs
+const createSlug = (text: string): string => {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+};
 
 export function BagsPage({ onNavigate }: BagsPageProps) {
   const [sortBy, setSortBy] = useState("featured");
@@ -51,15 +62,13 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
     toast.success(`${bag.name} added to cart!`);
   };
 
-  const bags = [
+  const baseBags = [
     {
       id: 1,
       name: "Boho Tote Bag",
       price: 2899,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.9,
-      reviews: 18,
       description: "Spacious handwoven tote perfect for everyday use"
     },
     {
@@ -68,8 +77,6 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
       price: 2299,
       originalPrice: 2699,
       image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.7,
-      reviews: 24,
       description: "Compact crossbody for hands-free convenience"
     },
     {
@@ -78,8 +85,6 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
       price: 3000,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.8,
-      reviews: 15,
       description: "Eco-friendly market bag with sturdy handles"
     },
     {
@@ -88,8 +93,6 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
       price: 1999,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.6,
-      reviews: 12,
       description: "Sophisticated clutch for special occasions"
     },
     {
@@ -98,8 +101,6 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
       price: 2599,
       originalPrice: 2999,
       image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.9,
-      reviews: 21,
       description: "Trendy bucket style with drawstring closure"
     },
     {
@@ -108,11 +109,12 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
       price: 3000,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.8,
-      reviews: 9,
       description: "Work-ready tote with laptop compartment"
     }
   ];
+
+  // Get all bags with calculated ratings and review counts
+  const bags = getCategoryProductsWithReviews(baseBags, 'bags');
 
   // Filter and sort products
   const filteredAndSortedBags = bags
@@ -155,30 +157,15 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white dark:bg-card border-b sticky top-0 z-40">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Button 
-              variant="ghost" 
-              onClick={() => onNavigate('home')}
-              className="flex items-center space-x-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to Home</span>
-            </Button>
-            <h1 className="text-2xl font-bold text-primary">Crochet Bags Collection</h1>
-            <div className="w-32"></div>
-          </div>
-        </div>
-      </div>
+      <Header onNavigate={onNavigate} />
 
       {/* Hero Section */}
       <section className="py-12 bg-gradient-to-b from-purple-50/50 to-white dark:from-purple-950/20 dark:to-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Handcrafted Crochet Bags
-            </h2>
+            <h1 className="text-3xl md:text-4xl text-foreground mb-4" style={{ fontWeight: 600 }}>
+              Handmade Crochet Bags
+            </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Discover our collection of beautiful, functional bags. Each piece is lovingly handmade with attention to detail and quality.
             </p>
@@ -248,7 +235,7 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
                       src={bag.image}
                       alt={bag.name}
                       className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
-                      onClick={() => onNavigate(`product-bags-${bag.id}`)}
+                      onClick={() => onNavigate(`product-bags-${createSlug(bag.name)}`)}
                     />
                     
                     <Button
@@ -298,7 +285,7 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
                     
                     <h3 
                       className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors cursor-pointer"
-                      onClick={() => onNavigate(`product-bags-${bag.id}`)}
+                      onClick={() => onNavigate(`product-bags-${createSlug(bag.name)}`)}
                     >
                       {bag.name}
                     </h3>
@@ -321,7 +308,7 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
                     <Button 
                       variant="outline" 
                       className="w-full"
-                      onClick={() => onNavigate(`product-bags-${bag.id}`)}
+                      onClick={() => onNavigate(`product-bags-${createSlug(bag.name)}`)}
                     >
                       View Details
                     </Button>
@@ -332,6 +319,9 @@ export function BagsPage({ onNavigate }: BagsPageProps) {
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

@@ -7,10 +7,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useCart } from "../CartContext";
 import { useWishlist } from "../WishlistContext";
 import { toast } from "sonner@2.0.3";
+import { getCategoryProductsWithReviews } from "../ProductData";
+import { Header } from "../Header";
+import { Footer } from "../Footer";
 
 interface AccessoriesPageProps {
   onNavigate: (page: string) => void;
 }
+
+// Helper function to create URL-friendly slugs
+const createSlug = (text: string): string => {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+};
 
 export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
   const [sortBy, setSortBy] = useState("featured");
@@ -51,15 +62,13 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
     toast.success(`${accessory.name} added to cart!`);
   };
 
-  const allAccessories = [
+  const baseAccessories = [
     {
       id: 1,
       name: "Hair Scrunchie Set",
       price: 1299,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.9,
-      reviews: 45,
       description: "Set of 3 soft crochet scrunchies"
     },
     {
@@ -68,8 +77,6 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       price: 1599,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.8,
-      reviews: 32,
       description: "Cozy winter headband with flower detail"
     },
     {
@@ -78,8 +85,6 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       price: 1799,
       originalPrice: 2199,
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.7,
-      reviews: 28,
       description: "Protective crochet phone case with strap"
     },
     {
@@ -88,8 +93,6 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       price: 999,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.6,
-      reviews: 19,
       description: "Adorable bookmarks with tassels"
     },
     {
@@ -98,8 +101,6 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       price: 1399,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.9,
-      reviews: 37,
       description: "Small purse perfect for coins and cards"
     },
     {
@@ -108,8 +109,6 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       price: 1599,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.8,
-      reviews: 24,
       description: "Keep your drinks warm with style"
     },
     {
@@ -118,8 +117,6 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       price: 1999,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 5.0,
-      reviews: 15,
       description: "Delicate pouch for storing jewelry"
     },
     {
@@ -128,11 +125,12 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
       price: 1799,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.7,
-      reviews: 21,
       description: "Stylish cover for your plant pots"
     }
   ];
+
+  // Get products with centralized reviews data
+  const allAccessories = getCategoryProductsWithReviews(baseAccessories, "accessories");
 
   // Filtering and sorting logic
   const getFilteredAndSortedAccessories = () => {
@@ -173,30 +171,15 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white dark:bg-card border-b sticky top-0 z-40">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Button 
-              variant="ghost" 
-              onClick={() => onNavigate('home')}
-              className="flex items-center space-x-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to Home</span>
-            </Button>
-            <h1 className="text-2xl font-bold text-primary">Crochet Accessories Collection</h1>
-            <div className="w-32"></div>
-          </div>
-        </div>
-      </div>
+      <Header onNavigate={onNavigate} />
 
       {/* Hero Section */}
       <section className="py-12 bg-gradient-to-b from-purple-50/50 to-white dark:from-purple-950/20 dark:to-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Charming Crochet Accessories
-            </h2>
+            <h1 className="text-3xl md:text-4xl text-foreground mb-4" style={{ fontWeight: 600 }}>
+              Handmade Crochet Accessories
+            </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Discover unique handmade accessories that add a touch of warmth and personality to your daily life.
             </p>
@@ -265,7 +248,7 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
                       src={accessory.image}
                       alt={accessory.name}
                       className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
-                      onClick={() => onNavigate(`product-accessories-${accessory.id}`)}
+                      onClick={() => onNavigate(`product-accessories-${createSlug(accessory.name)}`)}
                     />
                     
                     <Button
@@ -315,7 +298,7 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
                     
                     <h3 
                       className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors cursor-pointer"
-                      onClick={() => onNavigate(`product-accessories-${accessory.id}`)}
+                      onClick={() => onNavigate(`product-accessories-${createSlug(accessory.name)}`)}
                     >
                       {accessory.name}
                     </h3>
@@ -338,7 +321,7 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
                     <Button 
                       variant="outline" 
                       className="w-full"
-                      onClick={() => onNavigate(`product-accessories-${accessory.id}`)}
+                      onClick={() => onNavigate(`product-accessories-${createSlug(accessory.name)}`)}
                     >
                       View Details
                     </Button>
@@ -349,6 +332,8 @@ export function AccessoriesPage({ onNavigate }: AccessoriesPageProps) {
           </div>
         </div>
       </section>
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

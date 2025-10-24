@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useCart } from "../CartContext";
 import { useWishlist } from "../WishlistContext";
 import { toast } from "sonner@2.0.3";
+import { getProductReviews, calculateAverageRating, getReviewCount } from "../ProductData";
 
 interface FeaturedProductsPageProps {
   onNavigate: (page: string) => void;
@@ -53,8 +54,8 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
     toast.success(`${product.name} added to cart!`);
   };
 
-  // Featured products from various categories
-  const allFeaturedProducts = [
+  // Base featured products from various categories
+  const baseFeaturedProducts = [
     // Flowers
     {
       id: 1,
@@ -62,8 +63,6 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
       price: 2499,
       originalPrice: 2999,
       image: "https://images.unsplash.com/photo-1750009928696-61f5ed8eb8c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZmxvd2VycyUyMGhhbmRtYWRlJTIwcHVycGxlfGVufDF8fHx8MTc1OTI2ODAyMHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      rating: 4.9,
-      reviews: 32,
       description: "Beautiful handcrafted lavender roses that last forever",
       category: "flowers"
     },
@@ -73,8 +72,6 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
       price: 2199,
       originalPrice: 2799,
       image: "https://images.unsplash.com/photo-1753366556699-4be495e5bdd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwc3VuZmxvd2VyJTIweWVsbG93JTIwaGFuZG1hZGV8ZW58MXx8fHwxNzU5MjY4MDIzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      rating: 4.8,
-      reviews: 28,
       description: "Bright sunflower arrangement perfect for any occasion",
       category: "flowers"
     },
@@ -84,8 +81,6 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
       price: 2999,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1508808703020-ef18109db02f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwcGVvbnklMjBwaW5rJTIwZmxvd2Vyc3xlbnwxfHx8fDE3NTkyNjgwMzB8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      rating: 5.0,
-      reviews: 15,
       description: "Luxurious peony blooms in soft pastel colors",
       category: "flowers"
     },
@@ -96,8 +91,6 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
       price: 2899,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.9,
-      reviews: 18,
       description: "Spacious handwoven tote perfect for everyday use",
       category: "bags"
     },
@@ -107,8 +100,6 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
       price: 2599,
       originalPrice: 2999,
       image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.9,
-      reviews: 21,
       description: "Trendy bucket style with drawstring closure",
       category: "bags"
     },
@@ -119,8 +110,6 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
       price: 799,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.9,
-      reviews: 25,
       description: "Cute mini flower perfect for any bag",
       category: "charms"
     },
@@ -130,8 +119,6 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
       price: 699,
       originalPrice: 899,
       image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.7,
-      reviews: 18,
       description: "Elegant tassel charm in various colors",
       category: "charms"
     },
@@ -142,8 +129,6 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
       price: 1299,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.8,
-      reviews: 34,
       description: "Comfortable bandana perfect for daily wear",
       category: "bandanas"
     },
@@ -153,8 +138,6 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
       price: 1499,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.9,
-      reviews: 28,
       description: "Beautiful floral pattern with soft texture",
       category: "bandanas"
     },
@@ -165,8 +148,6 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
       price: 1299,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.9,
-      reviews: 45,
       description: "Set of 3 soft crochet scrunchies",
       category: "accessories"
     },
@@ -176,12 +157,23 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
       price: 1399,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.9,
-      reviews: 37,
       description: "Small purse perfect for coins and cards",
       category: "accessories"
     }
   ];
+
+  // Add reviews data from centralized ProductData
+  const allFeaturedProducts = baseFeaturedProducts.map(product => {
+    const reviews = getProductReviews(product.category, product.id);
+    const rating = calculateAverageRating(reviews);
+    const reviewCount = getReviewCount(reviews);
+    
+    return {
+      ...product,
+      rating,
+      reviews: reviewCount
+    };
+  });
 
   const categories = [
     { value: "all", label: "All Categories" },

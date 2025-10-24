@@ -3,7 +3,7 @@ import { AuthProvider } from "./components/AuthContext";
 import { CartProvider } from "./components/CartContext";
 import { WishlistProvider } from "./components/WishlistContext";
 import { Header } from "./components/Header";
-import { HandcraftedCollection } from "./components/HandcraftedCollection";
+import { Hero } from "./components/Hero";
 import { ProductCategories } from "./components/ProductCategories";
 import { FeaturedProducts } from "./components/FeaturedProducts";
 import { About } from "./components/About";
@@ -28,6 +28,23 @@ import { ProductDetailPage } from "./components/pages/ProductDetailPage";
 import { CareInstructionsPage } from "./components/pages/CareInstructionsPage";
 import { FAQPage } from "./components/pages/FAQPage";
 
+// Helper function to create URL-friendly slugs (matches admin logic)
+const createSlug = (text: string): string => {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+};
+
+// Helper function to create category slugs
+const createCategorySlug = (categoryName: string): string => {
+  return createSlug(`handmade-crochet-${categoryName}`);
+};
+
+// Helper function to find product by slug
+const findProductBySlug = (category: string, slug: string, products: any[]) => {
+  return products.find(p => createSlug(p.name) === slug);
+};
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -67,7 +84,7 @@ export default function App() {
         name: "Sunflower Centerpiece",
         price: 2199,
         originalPrice: 2799,
-        image: "https://images.unsplash.com/photo-1753366556699-4be495e5bdd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwc3VuZmxvd2VyJTIweWVsbG93JTIwaGFuZG1hZGV8ZW58MXx8fHwxNzU5MjY4MDIzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+        image: "https://images.unsplash.com/photo-1753366556699-4be495e5bdd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwc3VuZmxvd2VyJTIweYllbG93JTIwaGFuZG1hZGV8ZW58MXx8fHwxNzU5MjY4MDIzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
         rating: 4.8,
         reviews: 28,
         description: "Bright sunflower arrangement perfect for any occasion"
@@ -410,74 +427,6 @@ export default function App() {
   };
 
   const getProductById = (category: string, id: string) => {
-    if (category === 'featured') {
-      // Handle featured products from FeaturedProducts.tsx
-      const featuredProducts = [
-        {
-          id: 1,
-          name: "Lavender Rose Bouquet",
-          price: 2499,
-          originalPrice: 2999,
-          image: "https://images.unsplash.com/photo-1750009928696-61f5ed8eb8c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZmxvd2VycyUyMGhhbmRtYWRlJTIwcHVycGxlfGVufDF8fHx8MTc1OTI2ODAyMHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-          rating: 4.9,
-          reviews: 32,
-          description: "Beautiful handcrafted lavender roses that bloom forever"
-        },
-        {
-          id: 2,
-          name: "Boho Tote Bag",
-          price: 2899,
-          originalPrice: null,
-          image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-          rating: 4.9,
-          reviews: 18,
-          description: "Spacious handwoven tote perfect for everyday use"
-        },
-        {
-          id: 3,
-          name: "Sunflower Centerpiece",
-          price: 2199,
-          originalPrice: 2799,
-          image: "https://images.unsplash.com/photo-1753366556699-4be495e5bdd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwc3VuZmxvd2VyJTIweWVsbG93JTIwaGFuZG1hZGV8ZW58MXx8fHwxNzU5MjY4MDIzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-          rating: 4.8,
-          reviews: 28,
-          description: "Bright sunflower arrangement perfect for any occasion"
-        },
-        {
-          id: 4,
-          name: "Flower Bag Charm",
-          price: 899,
-          originalPrice: 1199,
-          image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-          rating: 4.7,
-          reviews: 32,
-          description: "Delicate floral charm to brighten up any bag"
-        },
-        {
-          id: 5,
-          name: "Crochet Bandana - Purple",
-          price: 1299,
-          originalPrice: null,
-          image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
-          rating: 5.0,
-          reviews: 15,
-          description: "Soft and comfortable bandana for your furry friend"
-        },
-        {
-          id: 6,
-          name: "Hair Scrunchie Set",
-          price: 1299,
-          originalPrice: 1599,
-          image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-          rating: 4.6,
-          reviews: 28,
-          description: "Beautiful set of three scrunchies in complementary colors"
-        }
-      ];
-      const product = featuredProducts.find((p: any) => p.id.toString() === id);
-      return product ? { product, category: "Featured", allProducts: featuredProducts } : null;
-    }
-    
     const products = getAllProducts();
     const categoryProducts = (products as any)[category];
     if (!categoryProducts) return null;
@@ -490,8 +439,8 @@ export default function App() {
   const HomePage = () => (
     <div className="min-h-screen bg-background">
       <Header onNavigate={navigate} />
+      <Hero onNavigate={navigate} />
       <main>
-        <HandcraftedCollection onNavigate={navigate} />
         <ProductCategories onNavigate={navigate} />
         <FeaturedProducts onNavigate={navigate} />
         <About onNavigate={navigate} />
@@ -502,27 +451,50 @@ export default function App() {
 
   // Render different pages based on current page
   const renderPage = () => {
-    // Handle product detail pages
+    // Handle product detail pages with slug-based routing
     if (currentPage.startsWith('product-')) {
       const parts = currentPage.split('-');
       if (parts.length >= 3) {
         const category = parts[1];
-        const id = parts[2];
-        const productData = getProductById(category, id);
+        const idOrSlug = parts.slice(2).join('-'); // Join remaining parts for slug
+        
+        // Try to get product by ID first (backward compatibility)
+        let productData = getProductById(category, idOrSlug);
+        
+        // If not found by ID, try to find by slug
+        if (!productData) {
+          const products = getAllProducts();
+          const categoryProducts = (products as any)[category];
+          if (categoryProducts) {
+            const product = findProductBySlug(category, idOrSlug, categoryProducts);
+            if (product) {
+              productData = {
+                product,
+                category: category.charAt(0).toUpperCase() + category.slice(1),
+                allProducts: categoryProducts
+              };
+            }
+          }
+        }
+        
         return <ProductDetailPage onNavigate={navigate} productData={productData} previousPage={previousPage} />;
       }
     }
 
     switch (currentPage) {
       case 'flowers':
+      case 'category/handmade-crochet-flowers':
         return <FlowersPage onNavigate={navigate} />;
       case 'bags':
+      case 'category/handmade-crochet-bags':
         return <BagsPage onNavigate={navigate} />;
       case 'charms':
         return <BagCharmsPage onNavigate={navigate} />;
       case 'bandanas':
+      case 'category/handmade-crochet-bandanas':
         return <BandanasPage onNavigate={navigate} />;
       case 'accessories':
+      case 'category/handmade-crochet-accessories':
         return <AccessoriesPage onNavigate={navigate} />;
       case 'cart':
         return <CartPage onNavigate={navigate} />;

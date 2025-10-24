@@ -71,12 +71,12 @@ export function Header({ onNavigate }: HeaderProps) {
             </Sheet>
 
             {/* Desktop Navigation */}
-            <nav className="hidden xl:flex items-center space-x-4">
+            <nav className="hidden xl:flex items-center space-x-6">
               {navigation.map((item) => (
                 <button
                   key={item.name}
                   onClick={() => onNavigate?.(item.page)}
-                  className="text-sm text-foreground hover:text-primary transition-colors whitespace-nowrap"
+                  className="text-foreground hover:text-primary transition-colors whitespace-nowrap"
                 >
                   {item.name}
                 </button>
@@ -84,8 +84,8 @@ export function Header({ onNavigate }: HeaderProps) {
             </nav>
           </div>
 
-          {/* Search Bar - Expanded */}
-          <div className="flex-1">
+          {/* Search Bar - Reduced Width */}
+          <div className="flex-1 max-w-md">
             <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -24,22 +24,26 @@ export function AddCategoryPage() {
   const [formData, setFormData] = useState({
     categoryName: '',
     slug: '',
-    icon: '',
+    categoryImage: '',
     metaTitle: '',
     metaDescription: '',
-    keywords: '',
     h1Heading: '',
     introParagraph: '',
+    keywords: '',
   });
 
   const [isCreating, setIsCreating] = useState(false);
   const [validationDialogOpen, setValidationDialogOpen] = useState(false);
   const [missingFields, setMissingFields] = useState<string[]>([]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
-      
+
       // Auto-generate slug from category name
       if (field === 'categoryName') {
         updated.slug = value
@@ -47,14 +51,14 @@ export function AddCategoryPage() {
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/^-|-$/g, '');
       }
-      
+
       return updated;
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validation - check required fields
     const missing: string[] = [];
     if (!formData.categoryName) missing.push('Category Name');
@@ -77,7 +81,7 @@ export function AddCategoryPage() {
     addCategory({
       name: formData.categoryName,
       slug: formData.slug,
-      icon: formData.icon || '🌸',
+      icon: formData.categoryImage || '🌸',
       productCount: 0,
       metaTitle: formData.metaTitle,
       metaDescription: formData.metaDescription,
@@ -154,19 +158,18 @@ export function AddCategoryPage() {
               </div>
 
               <div>
-                <Label htmlFor="icon">
-                  Category Icon (Emoji)
+                <Label htmlFor="categoryImage">
+                  Category Image (URL)
                 </Label>
                 <Input
-                  id="icon"
-                  placeholder="🌸"
-                  value={formData.icon}
-                  onChange={(e) => handleInputChange('icon', e.target.value)}
-                  className="mt-1.5 placeholder:text-muted-foreground/40"
-                  maxLength={2}
+                  id="categoryImage"
+                  placeholder="https://..."
+                  value={formData.categoryImage}
+                  onChange={(e) => handleInputChange('categoryImage', e.target.value)}
+                  className="mt-1.5"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Use an emoji to represent this category (e.g., 🌸 👜 🎀 ✨)
+                  Note: Image should be less than 500 KB.
                 </p>
               </div>
 
@@ -194,7 +197,7 @@ export function AddCategoryPage() {
             <h3 className="mb-6">Category Content</h3>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="introParagraph">Intro Paragraph</Label>
+                <Label htmlFor="introParagraph">Intro paragraph / p tag</Label>
                 <Textarea
                   id="introParagraph"
                   placeholder="Welcome to our collection of handmade crochet flowers..."
@@ -247,16 +250,16 @@ export function AddCategoryPage() {
               </div>
 
               <div>
-                <Label htmlFor="keywords">Keywords</Label>
+                <Label htmlFor="keywords">SEO Keywords</Label>
                 <Input
                   id="keywords"
-                  placeholder="crochet flowers, handmade flowers, bouquet, gift"
+                  placeholder="e.g. handmade crochet, crochet flowers, crochet bags"
                   value={formData.keywords}
                   onChange={(e) => handleInputChange('keywords', e.target.value)}
                   className="mt-1.5"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Comma-separated keywords for SEO
+                  Comma-separated keywords for SEO (optional)
                 </p>
               </div>
             </div>

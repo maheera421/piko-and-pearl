@@ -7,6 +7,7 @@ import { Heart, ShoppingBag, Star } from "lucide-react";
 import { useCart } from "./CartContext";
 import { useWishlist } from "./WishlistContext";
 import { toast } from "sonner@2.0.3";
+import { getProductReviews, calculateAverageRating, getReviewCount } from "./ProductData";
 
 interface FeaturedProductsProps {
   onNavigate?: (page: string) => void;
@@ -18,12 +19,12 @@ export function FeaturedProducts({ onNavigate }: FeaturedProductsProps) {
 
   const toggleWishlist = (product: any) => {
     const wishlistItem = {
-      id: `featured-${product.id}`,
+      id: `${product.category}-${product.categoryId}`,
       name: product.name,
       price: product.price,
       originalPrice: product.originalPrice,
       image: product.image,
-      category: 'Featured',
+      category: product.category.charAt(0).toUpperCase() + product.category.slice(1),
       rating: product.rating,
       reviews: product.reviews,
       description: product.description
@@ -31,7 +32,7 @@ export function FeaturedProducts({ onNavigate }: FeaturedProductsProps) {
     
     toggleItem(wishlistItem);
     
-    if (isInWishlist(`featured-${product.id}`)) {
+    if (isInWishlist(`${product.category}-${product.categoryId}`)) {
       toast.success(`${product.name} removed from wishlist!`);
     } else {
       toast.success(`${product.name} added to wishlist!`);
@@ -40,77 +41,91 @@ export function FeaturedProducts({ onNavigate }: FeaturedProductsProps) {
 
   const handleAddToCart = (product: any) => {
     addItem({
-      id: `featured-${product.id}`,
+      id: `${product.category}-${product.categoryId}`,
       name: product.name,
       price: product.price,
       image: product.image,
-      category: 'Featured'
+      category: product.category.charAt(0).toUpperCase() + product.category.slice(1)
     });
     toast.success(`${product.name} added to cart!`);
   };
 
-  const products = [
+  // Base products with their actual category IDs
+  const baseProducts = [
     {
       id: 1,
+      categoryId: 1,
+      category: "flowers",
       name: "Lavender Rose Bouquet",
       price: 2499,
       originalPrice: 2999,
       image: "https://images.unsplash.com/photo-1750009928696-61f5ed8eb8c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZmxvd2VycyUyMGhhbmRtYWRlJTIwcHVycGxlfGVufDF8fHx8MTc1OTI2ODAyMHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      rating: 4.9,
-      reviews: 32,
       description: "Beautiful handcrafted lavender roses that bloom forever"
     },
     {
       id: 2,
+      categoryId: 1,
+      category: "bags",
       name: "Boho Tote Bag",
       price: 2899,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.9,
-      reviews: 18,
       description: "Spacious handwoven tote perfect for everyday use"
     },
     {
       id: 3,
+      categoryId: 2,
+      category: "flowers",
       name: "Sunflower Centerpiece",
       price: 2199,
       originalPrice: 2799,
       image: "https://images.unsplash.com/photo-1753366556699-4be495e5bdd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwc3VuZmxvd2VyJTIweWVsbG93JTIwaGFuZG1hZGV8ZW58MXx8fHwxNzU5MjY4MDIzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      rating: 4.8,
-      reviews: 28,
       description: "Bright sunflower arrangement perfect for any occasion"
     },
     {
       id: 4,
-      name: "Flower Bag Charm",
-      price: 899,
-      originalPrice: 1199,
+      categoryId: 3,
+      category: "charms",
+      name: "Mini Flower Charm",
+      price: 799,
+      originalPrice: null,
       image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.7,
-      reviews: 32,
-      description: "Delicate floral charm to brighten up any bag"
+      description: "Cute mini flower perfect for any bag"
     },
     {
       id: 5,
-      name: "Crochet Bandana - Purple",
+      categoryId: 1,
+      category: "bandanas",
+      name: "Classic Crochet Bandana",
       price: 1299,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 5.0,
-      reviews: 15,
-      description: "Soft and comfortable bandana for your furry friend"
+      description: "Comfortable bandana perfect for daily wear"
     },
     {
       id: 6,
+      categoryId: 1,
+      category: "accessories",
       name: "Hair Scrunchie Set",
       price: 1299,
-      originalPrice: 1599,
+      originalPrice: null,
       image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.6,
-      reviews: 28,
-      description: "Beautiful set of three scrunchies in complementary colors"
+      description: "Set of 3 soft crochet scrunchies"
     }
   ];
+
+  // Add reviews data from centralized ProductData
+  const products = baseProducts.map(product => {
+    const reviews = getProductReviews(product.category, product.categoryId);
+    const rating = calculateAverageRating(reviews);
+    const reviewCount = getReviewCount(reviews);
+    
+    return {
+      ...product,
+      rating,
+      reviews: reviewCount
+    };
+  });
 
   const getBadgeVariant = (badge: string) => {
     switch (badge) {
@@ -159,7 +174,7 @@ export function FeaturedProducts({ onNavigate }: FeaturedProductsProps) {
                   >
                     <Heart 
                       className={`h-4 w-4 ${
-                        isInWishlist(`featured-${product.id}`) 
+                        isInWishlist(`${product.category}-${product.categoryId}`) 
                           ? 'fill-red-500 text-red-500' 
                           : 'text-gray-600'
                       }`} 
@@ -220,7 +235,7 @@ export function FeaturedProducts({ onNavigate }: FeaturedProductsProps) {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => onNavigate?.(`product-featured-${product.id}`)}
+                      onClick={() => onNavigate?.(`product-${product.category}-${product.categoryId}`)}
                     >
                       View Details
                     </Button>

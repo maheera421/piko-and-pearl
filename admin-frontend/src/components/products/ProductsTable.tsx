@@ -127,7 +127,6 @@ export function ProductsTable({
                 <th className="text-left py-3 px-4 text-sm font-medium">SKU</th>
                 <th className="text-left py-3 px-4 text-sm font-medium">Price</th>
                 <th className="text-left py-3 px-4 text-sm font-medium">Stock</th>
-                <th className="text-left py-3 px-4 text-sm font-medium">Status</th>
                 <th className="text-left py-3 px-4 text-sm font-medium">Featured</th>
                 <th className="text-left py-3 px-4 text-sm font-medium">Actions</th>
               </tr>
@@ -190,31 +189,6 @@ export function ProductsTable({
                         ? 'Low Stock'
                         : 'Out of Stock'}
                     </Badge>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="relative group">
-                      {getStatusBadge(product.status || 'active')}
-                      <div className="absolute left-0 top-full mt-1 hidden group-hover:block z-10 bg-white border border-border rounded-lg shadow-lg p-2 min-w-[120px]">
-                        <button
-                          onClick={() => handleStatusChange(product.id, 'active')}
-                          className="w-full text-left px-3 py-1.5 text-sm hover:bg-accent rounded"
-                        >
-                          Active
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(product.id, 'draft')}
-                          className="w-full text-left px-3 py-1.5 text-sm hover:bg-accent rounded"
-                        >
-                          Draft
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(product.id, 'archived')}
-                          className="w-full text-left px-3 py-1.5 text-sm hover:bg-accent rounded"
-                        >
-                          Archived
-                        </button>
-                      </div>
-                    </div>
                   </td>
                   <td className="py-3 px-4">
                     <Switch 

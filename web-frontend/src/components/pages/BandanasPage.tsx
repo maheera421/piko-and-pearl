@@ -7,10 +7,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useCart } from "../CartContext";
 import { useWishlist } from "../WishlistContext";
 import { toast } from "sonner@2.0.3";
+import { getCategoryProductsWithReviews } from "../ProductData";
+import { Header } from "../Header";
+import { Footer } from "../Footer";
 
 interface BandanasPageProps {
   onNavigate: (page: string) => void;
 }
+
+// Helper function to create URL-friendly slugs
+const createSlug = (text: string): string => {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+};
 
 export function BandanasPage({ onNavigate }: BandanasPageProps) {
   const [sortBy, setSortBy] = useState("featured");
@@ -51,15 +62,13 @@ export function BandanasPage({ onNavigate }: BandanasPageProps) {
     toast.success(`${bandana.name} added to cart!`);
   };
 
-  const allBandanas = [
+  const baseBandanas = [
     {
       id: 1,
       name: "Classic Crochet Bandana",
       price: 1299,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.8,
-      reviews: 34,
       description: "Comfortable bandana perfect for daily wear"
     },
     {
@@ -68,8 +77,6 @@ export function BandanasPage({ onNavigate }: BandanasPageProps) {
       price: 1499,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.9,
-      reviews: 28,
       description: "Beautiful floral pattern with soft texture"
     },
     {
@@ -78,8 +85,6 @@ export function BandanasPage({ onNavigate }: BandanasPageProps) {
       price: 1199,
       originalPrice: 1399,
       image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.7,
-      reviews: 22,
       description: "Festive design for special occasions"
     },
     {
@@ -88,8 +93,6 @@ export function BandanasPage({ onNavigate }: BandanasPageProps) {
       price: 1799,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.9,
-      reviews: 16,
       description: "Two patterns in one reversible design"
     },
     {
@@ -98,8 +101,6 @@ export function BandanasPage({ onNavigate }: BandanasPageProps) {
       price: 1399,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.6,
-      reviews: 31,
       description: "Light and breezy for warm weather"
     },
     {
@@ -108,11 +109,12 @@ export function BandanasPage({ onNavigate }: BandanasPageProps) {
       price: 1999,
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 5.0,
-      reviews: 12,
       description: "Add custom text or patterns for a personal touch"
     }
   ];
+
+  // Get products with centralized reviews data
+  const allBandanas = getCategoryProductsWithReviews(baseBandanas, "bandanas");
 
   // Filtering and sorting logic
   const getFilteredAndSortedBandanas = () => {
@@ -153,30 +155,15 @@ export function BandanasPage({ onNavigate }: BandanasPageProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white dark:bg-card border-b sticky top-0 z-40">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Button 
-              variant="ghost" 
-              onClick={() => onNavigate('home')}
-              className="flex items-center space-x-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to Home</span>
-            </Button>
-            <h1 className="text-2xl font-bold text-primary">Crochet Bandanas Collection</h1>
-            <div className="w-32"></div>
-          </div>
-        </div>
-      </div>
+      <Header onNavigate={onNavigate} />
 
       {/* Hero Section */}
       <section className="py-12 bg-gradient-to-b from-purple-50/50 to-white dark:from-purple-950/20 dark:to-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Stylish Crochet Bandanas
-            </h2>
+            <h1 className="text-3xl md:text-4xl text-foreground mb-4" style={{ fontWeight: 600 }}>
+              Handmade Crochet Bandanas
+            </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Comfortable and stylish bandanas for your furry friends. Handcrafted with love and care for maximum comfort and style.
             </p>
@@ -245,7 +232,7 @@ export function BandanasPage({ onNavigate }: BandanasPageProps) {
                       src={bandana.image}
                       alt={bandana.name}
                       className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
-                      onClick={() => onNavigate(`product-bandanas-${bandana.id}`)}
+                      onClick={() => onNavigate(`product-bandanas-${createSlug(bandana.name)}`)}
                     />
                     
                     <Button
@@ -295,7 +282,7 @@ export function BandanasPage({ onNavigate }: BandanasPageProps) {
                     
                     <h3 
                       className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors cursor-pointer"
-                      onClick={() => onNavigate(`product-bandanas-${bandana.id}`)}
+                      onClick={() => onNavigate(`product-bandanas-${createSlug(bandana.name)}`)}
                     >
                       {bandana.name}
                     </h3>
@@ -318,7 +305,7 @@ export function BandanasPage({ onNavigate }: BandanasPageProps) {
                     <Button 
                       variant="outline" 
                       className="w-full"
-                      onClick={() => onNavigate(`product-bandanas-${bandana.id}`)}
+                      onClick={() => onNavigate(`product-bandanas-${createSlug(bandana.name)}`)}
                     >
                       View Details
                     </Button>
@@ -329,6 +316,9 @@ export function BandanasPage({ onNavigate }: BandanasPageProps) {
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

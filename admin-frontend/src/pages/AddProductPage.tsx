@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -7,7 +7,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Switch } from '../components/ui/switch';
-import { Upload, X, ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useApp } from '../contexts/AppContext';
 import {
@@ -27,153 +27,57 @@ export function AddProductPage() {
     name: '',
     description: '',
     category: '',
+    slug: '',
     price: '',
     stock: '',
     sku: '',
+    productImage: '',
+    metaTitle: '',
+    metaDescription: '',
     featured: false,
-    status: 'active' as 'active' | 'draft' | 'archived',
+    keywords: '',
   });
-  const [images, setImages] = useState<{ file: File | null; preview: string; altText: string }[]>([]);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [showValidationDialog, setShowValidationDialog] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  const generateSlug = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    // Check total images limit
-    if (images.length + files.length > 4) {
-      toast.error('Maximum 4 images allowed per product', {
-        description: `You can only upload ${4 - images.length} more image(s)`,
-      });
-      e.target.value = ''; // Reset input
-      return;
-    }
-
-    // Calculate current total size
-    const currentTotalSize = images.reduce((acc, img) => {
-      if (img.file) return acc + img.file.size;
-      return acc;
-    }, 0);
-
-    const newImages: { file: File; preview: string; altText: string }[] = [];
-    const errors: string[] = [];
-    let totalNewSize = 0;
-
-    // Process each file
-    for (const file of Array.from(files)) {
-      // Check individual file size (1MB = 1048576 bytes)
-      if (file.size > 1048576) {
-        errors.push(`${file.name}: File size ${(file.size / 1048576).toFixed(2)}MB exceeds 1MB limit`);
-        continue;
+      // Auto-generate slug from name only if slug is empty
+      if (field === 'name' && (!prev.slug || prev.slug.trim() === '')) {
+        updated.slug = generateSlug(value);
       }
 
-      totalNewSize += file.size;
-
-      // Check image dimensions
-      try {
-        const dimensions = await checkImageDimensions(file);
-        if (dimensions.width > 1000 || dimensions.height > 1000) {
-          // Show dialog for dimension error
-          toast.error('Image dimensions too large', {
-            description: `${file.name}: Dimensions ${dimensions.width}×${dimensions.height}px exceed 1000×1000px limit. Please resize the image to max 1000×1000px.`,
-            duration: 5000,
-          });
-          continue;
-        }
-
-        // Image passed all checks
-        newImages.push({
-          file,
-          preview: URL.createObjectURL(file),
-          altText: '',
-        });
-      } catch (error) {
-        errors.push(`${file.name}: Failed to load image`);
-      }
-    }
-
-    // Check total upload size
-    if (currentTotalSize + totalNewSize > 1048576) {
-      const remainingSpace = (1048576 - currentTotalSize) / 1048576;
-      toast.error('Total upload size exceeds 1MB limit', {
-        description: `Only ${remainingSpace.toFixed(2)}MB space remaining`,
-      });
-      e.target.value = '';
-      return;
-    }
-
-    // Show errors if any
-    if (errors.length > 0) {
-      errors.forEach(error => toast.error(error));
-    }
-
-    // Add valid images
-    if (newImages.length > 0) {
-      setImages(prev => [...prev, ...newImages]);
-      toast.success(`${newImages.length} image(s) uploaded successfully`);
-    }
-
-    // Reset input
-    e.target.value = '';
-  };
-
-  // Helper function to check image dimensions
-  const checkImageDimensions = (file: File): Promise<{ width: number; height: number }> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        resolve({ width: img.width, height: img.height });
-      };
-      
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject(new Error('Failed to load image'));
-      };
-      
-      img.src = url;
+      return updated;
     });
-  };
-
-  const removeImage = (index: number) => {
-    setImages(prev => {
-      const img = prev[index];
-      if (img.preview) URL.revokeObjectURL(img.preview);
-      return prev.filter((_, i) => i !== index);
-    });
-  };
-
-  const updateImageAltText = (index: number, altText: string) => {
-    setImages(prev => prev.map((img, i) => i === index ? { ...img, altText } : img));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validation
     const errors: string[] = [];
-    
+
     if (!formData.name) errors.push('Product Name');
     if (!formData.category) errors.push('Category');
     if (!formData.sku) errors.push('SKU');
+    if (!formData.slug) errors.push('Slug');
     if (!formData.price) errors.push('Price');
     if (!formData.stock) errors.push('Stock');
     if (!formData.description) errors.push('Description');
-    if (images.length === 0) errors.push('Product Images (at least one)');
-    
-    // Check if all images have alt text
-    const missingAltText = images.some(img => !img.altText);
-    if (images.length > 0 && missingAltText) {
-      errors.push('Alt text for all images');
-    }
+    if (!formData.productImage) errors.push('Product Image (URL)');
 
     if (errors.length > 0) {
       setValidationErrors(errors);
@@ -187,17 +91,20 @@ export function AddProductPage() {
     // Simulate saving delay for loading state
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Add product to context
+    // Add product to context (include slug & keywords)
     addProduct({
       name: formData.name,
       description: formData.description,
       category: formData.category,
+      slug: formData.slug,
       sku: formData.sku,
       price: parseFloat(formData.price),
-      stock: parseInt(formData.stock),
+      stock: parseInt(formData.stock, 10),
       featured: formData.featured,
-      status: formData.status,
-      image: images[0].preview, // Use first image as main image
+      image: formData.productImage,
+      metaTitle: formData.metaTitle,
+      metaDescription: formData.metaDescription,
+      keywords: formData.keywords,
     });
 
     setIsSaving(false);
@@ -233,7 +140,7 @@ export function AddProductPage() {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="name">
-                  Product Name <span className="text-destructive">*</span>
+                  Product Name / H1 tag <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="name"
@@ -259,11 +166,25 @@ export function AddProductPage() {
                   <SelectContent>
                     {categories.map((cat) => (
                       <SelectItem key={cat.id} value={cat.name}>
-                        {cat.icon} {cat.name}
+                        {cat.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="slug">Slug</Label>
+                <Input
+                  id="slug"
+                  placeholder="product-slug"
+                  value={formData.slug}
+                  onChange={(e) => handleInputChange('slug', e.target.value)}
+                  className="mt-1.5"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  URL friendly identifier (auto-generated from name if left empty)
+                </p>
               </div>
 
               <div>
@@ -289,7 +210,7 @@ export function AddProductPage() {
             <h3 className="mb-6">Description</h3>
             <div>
               <Label htmlFor="description">
-                Product Description <span className="text-destructive">*</span>
+                Product Description / p tag <span className="text-destructive">*</span>
               </Label>
               <Textarea
                 id="description"
@@ -340,75 +261,75 @@ export function AddProductPage() {
             </div>
           </Card>
 
-          {/* Images */}
+          {/* Product Image */}
           <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
+            <h3 className="mb-6">Product Image</h3>
+            <div>
+              <Label htmlFor="productImage">
+                Product Image (URL) <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="productImage"
+                placeholder="https://..."
+                value={formData.productImage}
+                onChange={(e) => handleInputChange('productImage', e.target.value)}
+                className="mt-1.5"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Note: Image should be less than 500 KB.
+              </p>
+            </div>
+          </Card>
+
+          {/* SEO Settings */}
+          <Card className="p-6">
+            <h3 className="mb-6">SEO Settings</h3>
+            <div className="space-y-4">
               <div>
-                <h3>Product Images <span className="text-destructive">*</span></h3>
+                <Label htmlFor="metaTitle">Meta Title</Label>
+                <Input
+                  id="metaTitle"
+                  placeholder="Handmade Crochet Sunflower Bouquet | Piko & Pearl"
+                  value={formData.metaTitle}
+                  onChange={(e) => handleInputChange('metaTitle', e.target.value)}
+                  className="mt-1.5"
+                  maxLength={60}
+                />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Max 4 images • 1000×1000px each • 1MB total
+                  Page title for search engines • {formData.metaTitle.length}/60 characters
                 </p>
               </div>
-              <div className="text-right">
-                <span className="text-sm text-muted-foreground block">
-                  {images.length}/4 images
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {((images.reduce((acc, img) => acc + (img.file?.size || 0), 0)) / 1048576).toFixed(2)}MB / 1MB
-                </span>
+
+              <div>
+                <Label htmlFor="metaDescription">Meta Description</Label>
+                <Textarea
+                  id="metaDescription"
+                  placeholder="Beautiful handmade crochet sunflower bouquet, perfect for gifts and home decor..."
+                  value={formData.metaDescription}
+                  onChange={(e) => handleInputChange('metaDescription', e.target.value)}
+                  className="mt-1.5"
+                  rows={3}
+                  maxLength={160}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Brief description for search results • {formData.metaDescription.length}/160 characters
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="keywords">SEO Keywords</Label>
+                <Input
+                  id="keywords"
+                  placeholder="e.g. handmade crochet, crochet flowers, crochet bags"
+                  value={formData.keywords}
+                  onChange={(e) => handleInputChange('keywords', e.target.value)}
+                  className="mt-1.5"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Comma-separated keywords for SEO (optional)
+                </p>
               </div>
             </div>
-            
-            {/* Upload Area */}
-            {images.length < 4 && (
-              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center mb-6">
-                <input
-                  type="file"
-                  id="image-upload"
-                  className="hidden"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageUpload}
-                />
-                <label htmlFor="image-upload" className="cursor-pointer">
-                  <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-sm font-medium mb-1">Click to upload or drag and drop</p>
-                  <p className="text-xs text-muted-foreground">
-                    PNG, JPG, WebP • Max 1000×1000px • {images.length}/4 uploaded
-                  </p>
-                </label>
-              </div>
-            )}
-
-            {/* Image Previews */}
-            {images.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {images.map((image, index) => (
-                  <div key={index} className="relative border border-border rounded-lg p-2">
-                    <img
-                      src={image.preview}
-                      alt={image.altText || 'Product'}
-                      className="w-full h-32 object-cover rounded-lg mb-2"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-1 right-1 h-6 w-6"
-                      onClick={() => removeImage(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                    <Input
-                      placeholder="Alt text (required)"
-                      value={image.altText}
-                      onChange={(e) => updateImageAltText(index, e.target.value)}
-                      className="text-xs"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
           </Card>
         </div>
 
@@ -429,68 +350,50 @@ export function AddProductPage() {
                   onCheckedChange={(checked) => handleInputChange('featured', checked)}
                 />
               </div>
-
-              <div>
-                <Label>Visibility Status</Label>
-                <div className="space-y-2 mt-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="status"
-                      value="active"
-                      checked={formData.status === 'active'}
-                      onChange={(e) => handleInputChange('status', e.target.value)}
-                      className="h-4 w-4"
-                    />
-                    <span className="text-sm">Active (visible in store)</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="status"
-                      value="draft"
-                      checked={formData.status === 'draft'}
-                      onChange={(e) => handleInputChange('status', e.target.value)}
-                      className="h-4 w-4"
-                    />
-                    <span className="text-sm">Draft (not visible)</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="status"
-                      value="archived"
-                      checked={formData.status === 'archived'}
-                      onChange={(e) => handleInputChange('status', e.target.value)}
-                      className="h-4 w-4"
-                    />
-                    <span className="text-sm">Archived (hidden)</span>
-                  </label>
-                </div>
-              </div>
             </div>
           </Card>
 
           {/* Preview */}
           <Card className="p-6">
             <h3 className="mb-4">Preview</h3>
-            {images.length > 0 ? (
+            {formData.productImage ? (
               <div className="border border-border rounded-lg overflow-hidden">
-                <img src={images[0].preview} alt="Preview" className="w-full h-40 object-cover" />
+                <img src={formData.productImage} alt="Preview" className="w-full h-40 object-cover" />
                 <div className="p-3">
                   <h4 className="line-clamp-2 mb-1">
                     {formData.name || 'Product Name'}
                   </h4>
                   <p className="font-semibold text-primary">
-                    {formData.price ? `Rs.${parseInt(formData.price).toLocaleString()}` : 'Rs.0'}
+                    {formData.price ? `₨${parseInt(formData.price, 10).toLocaleString()}` : '₨0'}
                   </p>
                 </div>
               </div>
             ) : (
               <div className="border border-border rounded-lg p-6 text-center text-muted-foreground text-sm">
-                Upload images to see preview
+                Add product image URL to see preview
               </div>
             )}
+          </Card>
+
+          {/* SEO Preview */}
+          <Card className="p-6">
+            <h3 className="mb-4">SEO Preview</h3>
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Search Result Preview:</p>
+                <div className="border border-border rounded-lg p-4 bg-muted/30">
+                  <div className="text-[#1a0dab] text-lg mb-1 line-clamp-1">
+                    {formData.metaTitle || formData.name || 'Product Title | Piko & Pearl'}
+                  </div>
+                  <div className="text-[#006621] text-xs mb-2">
+                    pikoandpearl.com › {formData.sku.toLowerCase() || 'product-sku'}
+                  </div>
+                  <div className="text-sm text-muted-foreground line-clamp-2">
+                    {formData.metaDescription || formData.description || 'Product description will appear here in search results...'}
+                  </div>
+                </div>
+              </div>
+            </div>
           </Card>
 
           {/* Action Buttons */}
