@@ -1,3 +1,4 @@
+// ...existing code...
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card } from '../components/ui/card';
@@ -23,9 +24,13 @@ export function EditProductPage() {
     category: product?.category || '',
     slug: product?.slug || '',
     price: product?.price != null ? String(product.price) : '',
+    previousPrice: product?.previousPrice != null ? String((product as any).previousPrice) : '', // <-- new field
     stock: product?.stock != null ? String(product.stock) : '',
     sku: product?.sku || '',
-    productImage: product?.image || '',
+    productImage1: product?.images?.[0] || product?.image || '',
+    productImage2: product?.images?.[1] || '',
+    productImage3: product?.images?.[2] || '',
+    productImage4: product?.images?.[3] || '',
     metaTitle: product?.metaTitle || '',
     metaDescription: product?.metaDescription || '',
     featured: product?.featured || false,
@@ -73,8 +78,9 @@ export function EditProductPage() {
       return;
     }
 
-    if (!formData.productImage) {
-      toast.error('Please provide a product image URL');
+    // require primary image
+    if (!formData.productImage1) {
+      toast.error('Please provide primary product image URL (Image 1)');
       return;
     }
 
@@ -85,17 +91,26 @@ export function EditProductPage() {
     // Simulate save delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Update product (include slug & keywords)
+    const images = [
+      formData.productImage1,
+      formData.productImage2,
+      formData.productImage3,
+      formData.productImage4,
+    ].filter(Boolean);
+
+    // Update product (include slug, previousPrice & keywords)
     updateProduct(product.id, {
       name: formData.name,
       description: formData.description,
       category: formData.category,
       slug: formData.slug,
       price: parseFloat(formData.price),
+      previousPrice: formData.previousPrice ? parseFloat(formData.previousPrice) : undefined,
       stock: parseInt(formData.stock, 10),
       sku: formData.sku,
       featured: formData.featured,
-      image: formData.productImage,
+      image: formData.productImage1, // keep primary field for backward compatibility
+      images,
       metaTitle: formData.metaTitle,
       metaDescription: formData.metaDescription,
       keywords: formData.keywords,
@@ -111,6 +126,7 @@ export function EditProductPage() {
   if (!product) return null;
 
   const formattedPrice = formData.price ? Number(formData.price).toLocaleString() : '0';
+  const formattedPreviousPrice = formData.previousPrice ? Number(formData.previousPrice).toLocaleString() : null;
 
   return (
     <div className="space-y-6">
@@ -245,6 +261,24 @@ export function EditProductPage() {
                 />
               </div>
               <div>
+                <Label htmlFor="previousPrice">
+                  Previous Price (₨) <span className="text-muted-foreground text-xs">(optional)</span>
+                </Label>
+                <Input
+                  id="previousPrice"
+                  type="number"
+                  placeholder="e.g., 2000"
+                  value={formData.previousPrice}
+                  onChange={(e) => handleInputChange('previousPrice', e.target.value)}
+                  className="mt-1.5"
+                  min="0"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  If provided, shown as the crossed-out previous price on product preview.
+                </p>
+              </div>
+
+              <div>
                 <Label htmlFor="stock">
                   Stock Quantity <span className="text-destructive">*</span>
                 </Label>
@@ -261,24 +295,54 @@ export function EditProductPage() {
             </div>
           </Card>
 
-          {/* Product Image */}
+          {/* Product Images */}
           <Card className="p-6">
-            <h3 className="mb-6">Product Image</h3>
-            <div>
-              <Label htmlFor="productImage">
-                Product Image (URL) <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="productImage"
-                placeholder="https://..."
-                value={formData.productImage}
-                onChange={(e) => handleInputChange('productImage', e.target.value)}
-                className="mt-1.5"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Note: Image should be less than 500 KB.
-              </p>
+            <h3 className="mb-6">Product Images</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="productImage1">
+                  Image 1 URL (Primary) <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="productImage1"
+                  placeholder="https://..."
+                  value={formData.productImage1}
+                  onChange={(e) => handleInputChange('productImage1', e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <Label htmlFor="productImage2">Image 2 URL</Label>
+                <Input
+                  id="productImage2"
+                  placeholder="https://..."
+                  value={formData.productImage2}
+                  onChange={(e) => handleInputChange('productImage2', e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <Label htmlFor="productImage3">Image 3 URL</Label>
+                <Input
+                  id="productImage3"
+                  placeholder="https://..."
+                  value={formData.productImage3}
+                  onChange={(e) => handleInputChange('productImage3', e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <Label htmlFor="productImage4">Image 4 URL</Label>
+                <Input
+                  id="productImage4"
+                  placeholder="https://..."
+                  value={formData.productImage4}
+                  onChange={(e) => handleInputChange('productImage4', e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
             </div>
+            <p className="text-xs text-muted-foreground mt-2">Provide up to 4 images. Image 1 will be used as the primary image.</p>
           </Card>
 
           {/* SEO Settings */}
@@ -356,21 +420,37 @@ export function EditProductPage() {
           {/* Preview */}
           <Card className="p-6">
             <h3 className="mb-4">Preview</h3>
-            {formData.productImage ? (
+            {formData.productImage1 ? (
               <div className="border border-border rounded-lg overflow-hidden">
-                <img src={formData.productImage} alt="Preview" className="w-full h-40 object-cover" />
+                <img src={formData.productImage1} alt="Preview" className="w-full h-40 object-cover" />
                 <div className="p-3">
                   <h4 className="line-clamp-2 mb-1">
                     {formData.name || 'Product Name'}
                   </h4>
-                  <p className="font-semibold text-primary">
-                    {'\u20A8' + formattedPrice}
-                  </p>
+                  <div className="flex items-baseline gap-3">
+                    {formattedPreviousPrice && (
+                      <span className="text-sm text-muted-foreground line-through">
+                        {'\u20A8' + formattedPreviousPrice}
+                      </span>
+                    )}
+                    <p className="font-semibold text-primary">
+                      {'\u20A8' + formattedPrice}
+                    </p>
+                  </div>
+
+                  <div className="mt-3 flex gap-2">
+                    {[formData.productImage1, formData.productImage2, formData.productImage3, formData.productImage4]
+                      .filter(Boolean)
+                      .slice(0, 4)
+                      .map((src, idx) => (
+                        <img key={idx} src={src} alt={`thumb-${idx + 1}`} className="w-12 h-12 object-cover rounded" />
+                      ))}
+                  </div>
                 </div>
               </div>
             ) : (
               <div className="border border-border rounded-lg p-6 text-center text-muted-foreground text-sm">
-                Add product image URL to see preview
+                Add primary product image URL (Image 1) to see preview
               </div>
             )}
           </Card>
@@ -425,3 +505,4 @@ export function EditProductPage() {
     </div>
   );
 }
+// ...existing code...
