@@ -7,7 +7,23 @@ export const addProduct = async (req: Request, res: Response) => {
     const newProduct = await ProductService.createProduct(productData);
     res.status(201).json(newProduct);
   } catch (error) {
-    res.status(500).json({ message: 'Error adding product', error });
+    // Log full error on server for debugging
+    console.error('addProduct error:', error);
+
+    // Handle Mongoose validation errors
+    if (error && (error as any).name === 'ValidationError') {
+      return res.status(400).json({ message: 'Validation failed', errors: (error as any).errors });
+    }
+
+    // Handle duplicate key (unique index) errors
+    if (error && (error as any).code === 11000) {
+      // try to extract field that caused duplicate
+      const key = Object.keys((error as any).keyValue || {}).join(', ');
+      const msg = key ? `Duplicate value for field(s): ${key}` : 'Duplicate key error';
+      return res.status(409).json({ message: msg, code: 11000, keyValue: (error as any).keyValue });
+    }
+
+    return res.status(500).json({ message: (error as any)?.message || 'Error adding product' });
   }
 };
 

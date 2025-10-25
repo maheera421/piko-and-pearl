@@ -93,23 +93,26 @@ export function EditCategoryPage() {
     // Simulate update delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Update category
-    updateCategory(id, {
-      name: formData.categoryName,
-      slug: formData.slug,
-      image: formData.categoryImage,
-      metaTitle: formData.metaTitle,
-      metaDescription: formData.metaDescription,
-      keywords: formData.keywords,
-      h1Heading: formData.h1Heading,
-      introParagraph: formData.introParagraph,
-    });
+    try {
+      // Update category on server
+      await updateCategory(id, {
+        name: formData.categoryName,
+        slug: formData.slug,
+        image: formData.categoryImage,
+        metaTitle: formData.metaTitle,
+        metaDescription: formData.metaDescription,
+        keywords: formData.keywords,
+        h1Heading: formData.h1Heading,
+        introParagraph: formData.introParagraph,
+      });
 
-    setIsUpdating(false);
-
-    // Success
-    toast.success('Category updated successfully!');
-    setTimeout(() => navigate('/categories'), 1000);
+      setIsUpdating(false);
+      toast.success('Category updated successfully!');
+      setTimeout(() => navigate('/categories'), 1000);
+    } catch (err) {
+      setIsUpdating(false);
+      toast.error('Failed to update category. Please try again.');
+    }
   };
 
   if (!category) {

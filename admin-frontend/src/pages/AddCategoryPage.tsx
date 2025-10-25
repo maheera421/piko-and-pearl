@@ -77,25 +77,28 @@ export function AddCategoryPage() {
     // Simulate creation delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Create category
-    addCategory({
-      name: formData.categoryName,
-      slug: formData.slug,
-      icon: formData.categoryImage || '🌸',
-      productCount: 0,
-      metaTitle: formData.metaTitle,
-      metaDescription: formData.metaDescription,
-      keywords: formData.keywords,
-      h1Heading: formData.h1Heading,
-      introParagraph: formData.introParagraph,
-      active: true,
-    });
+    try {
+      // Create category (wait for server)
+      await addCategory({
+        name: formData.categoryName,
+        slug: formData.slug,
+        icon: formData.categoryImage || '🌸',
+        productCount: 0,
+        metaTitle: formData.metaTitle,
+        metaDescription: formData.metaDescription,
+        keywords: formData.keywords,
+        h1Heading: formData.h1Heading,
+        introParagraph: formData.introParagraph,
+        active: true,
+      });
 
-    setIsCreating(false);
-
-    // Success
-    toast.success('Category created successfully!');
-    setTimeout(() => navigate('/categories'), 1000);
+      setIsCreating(false);
+      toast.success('Category created successfully!');
+      setTimeout(() => navigate('/categories'), 1000);
+    } catch (err) {
+      setIsCreating(false);
+      toast.error('Failed to create category. Please try again.');
+    }
   };
 
   return (

@@ -23,7 +23,7 @@ import {
 
 export function AddProductPage() {
   const navigate = useNavigate();
-  const { addProduct, categories } = useApp();
+  const { addProduct, categories, products } = useApp();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -91,6 +91,18 @@ export function AddProductPage() {
       return;
     }
 
+    // Client-side uniqueness checks to avoid duplicate-key DB error
+    if (products.some(p => p.sku && p.sku.toLowerCase() === formData.sku.toLowerCase())) {
+      setValidationErrors(['SKU already exists']);
+      setShowValidationDialog(true);
+      return;
+    }
+    if (products.some(p => (p as any).slug && (p as any).slug.toLowerCase() === formData.slug.toLowerCase())) {
+      setValidationErrors(['Slug already exists']);
+      setShowValidationDialog(true);
+      return;
+    }
+
     // Show loading state
     setIsSaving(true);
 
@@ -105,27 +117,55 @@ export function AddProductPage() {
       formData.productImage4,
     ].filter(Boolean);
 
-    // Add product to context (include slug, previousPrice & keywords, images)
-    addProduct({
-      name: formData.name,
-      description: formData.description,
-      category: formData.category,
-      slug: formData.slug,
-      sku: formData.sku,
-      price: parseFloat(formData.price),
-      previousPrice: formData.previousPrice ? parseFloat(formData.previousPrice) : undefined,
-      stock: parseInt(formData.stock, 10),
-      featured: formData.featured,
-      image: formData.productImage1, // keep primary for backward compatibility
-      images, // new images array
-      metaTitle: formData.metaTitle,
-      metaDescription: formData.metaDescription,
-      keywords: formData.keywords,
-    });
+    // debug: log meta fields before sending
+    // eslint-disable-next-line no-console
+    console.debug('AddProduct payload metaTitle/metaDescription:', { metaTitle: formData.metaTitle, metaDescription: formData.metaDescription });
 
-    setIsSaving(false);
-    toast.success('Product added successfully!');
-    navigate('/products');
+    try {
+      await addProduct({
+        name: formData.name,
+        category: formData.category,
+        description: formData.description,
+        // backend expects slug/sku etc. We keep them in the payload mapping inside context
+        slug: formData.slug as unknown as any,
+        sku: formData.sku as unknown as any,
+        price: parseFloat(formData.price),
+        previousPrice: formData.previousPrice ? parseFloat(formData.previousPrice) : undefined,
+        stock: parseInt(formData.stock, 10),
+        featured: formData.featured,
+    image: formData.productImage1,
+    images,
+        status: 'active',
+        metaTitle: formData.metaTitle,
+        metaDescription: formData.metaDescription,
+        keywords: formData.keywords,
+      });
+
+      setIsSaving(false);
+      toast.success('Product added successfully!');
+      navigate('/products');
+    } catch (err: any) {
+      setIsSaving(false);
+      let msg = err?.message || String(err) || 'Failed to add product. Please check the values and try again.';
+      // Friendly message for duplicate key errors
+      if (msg.toLowerCase().includes('duplicate key') || msg.includes('E11000')) {
+        if (msg.includes('sku')) msg = 'SKU already exists. Please use a unique SKU.';
+        else if (msg.includes('slug')) msg = 'Slug already exists. Please change the product URL slug.';
+        else msg = 'Duplicate key error. Please ensure SKU and slug are unique.';
+      }
+      // If backend returned a structured JSON error that includes missingFields, show them
+      try {
+        const parsed = typeof err === 'string' ? JSON.parse(err) : err;
+        if (parsed && parsed.missingFields) {
+          msg = `Missing required fields: ${parsed.missingFields.join(', ')}`;
+        }
+      } catch (_) {
+        // ignore parse errors
+      }
+
+      toast.error(msg);
+      console.error('Add product failed:', err);
+    }
   };
 
   const formattedPrice = formData.price ? Number(formData.price).toLocaleString() : '0';

@@ -41,12 +41,76 @@ export function EditProductPage() {
     window.scrollTo(0, 0);
   }, []);
 
+  const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || 'http://localhost:5000/api';
+
+  // Fetch product from backend by id to ensure we have latest values (meta fields, etc.)
+  useEffect(() => {
+    if (!id) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/products/${id}`);
+        if (!res.ok) return;
+        const p = await res.json();
+        if (cancelled) return;
+
+        setFormData({
+          name: p.name || '',
+          description: p.description || '',
+          category: p.category || '',
+          slug: p.slug || '',
+          price: p.price != null ? String(p.price) : '',
+          previousPrice: p.previousPrice != null ? String(p.previousPrice) : '',
+          stock: p.stock != null ? String(p.stock) : '',
+          sku: p.sku || '',
+          productImage1: p.image1 || p.images?.[0] || p.image || '',
+          productImage2: p.image2 || p.images?.[1] || '',
+          productImage3: p.image3 || p.images?.[2] || '',
+          productImage4: p.image4 || p.images?.[3] || '',
+          metaTitle: p.metaTitle || '',
+          metaDescription: p.metaDescription || '',
+          featured: !!p.featured,
+          keywords: Array.isArray(p.keywords) ? p.keywords.join(', ') : (p.keywords || ''),
+        });
+      } catch (err) {
+        // ignore fetch errors for now
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [id]);
+
   useEffect(() => {
     if (!product) {
       toast.error('Product not found');
       navigate('/products');
     }
   }, [product, navigate]);
+
+  // When the product is loaded async from context, populate the form fields
+  useEffect(() => {
+    if (!product) return;
+
+    setFormData({
+      name: product.name || '',
+      description: product.description || '',
+      category: product.category || '',
+      slug: product.slug || '',
+      price: product.price != null ? String(product.price) : '',
+      previousPrice: product.previousPrice != null ? String((product as any).previousPrice) : '',
+      stock: product.stock != null ? String(product.stock) : '',
+      sku: product.sku || '',
+      productImage1: product.images?.[0] || product.image || '',
+      productImage2: product.images?.[1] || '',
+      productImage3: product.images?.[2] || '',
+      productImage4: product.images?.[3] || '',
+      metaTitle: (product as any).metaTitle || '',
+      metaDescription: (product as any).metaDescription || '',
+      featured: product.featured || false,
+      keywords: (product as any).keywords || '',
+    });
+  }, [product]);
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -98,29 +162,31 @@ export function EditProductPage() {
       formData.productImage4,
     ].filter(Boolean);
 
-    // Update product (include slug, previousPrice & keywords)
-    updateProduct(product.id, {
-      name: formData.name,
-      description: formData.description,
-      category: formData.category,
-      slug: formData.slug,
-      price: parseFloat(formData.price),
-      previousPrice: formData.previousPrice ? parseFloat(formData.previousPrice) : undefined,
-      stock: parseInt(formData.stock, 10),
-      sku: formData.sku,
-      featured: formData.featured,
-      image: formData.productImage1, // keep primary field for backward compatibility
-      images,
-      metaTitle: formData.metaTitle,
-      metaDescription: formData.metaDescription,
-      keywords: formData.keywords,
-    });
+    try {
+      await updateProduct(product.id, {
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        slug: formData.slug,
+        price: parseFloat(formData.price),
+        previousPrice: formData.previousPrice ? parseFloat(formData.previousPrice) : undefined,
+        stock: parseInt(formData.stock, 10),
+        sku: formData.sku,
+        featured: formData.featured,
+        image: formData.productImage1,
+        images,
+        metaTitle: formData.metaTitle,
+        metaDescription: formData.metaDescription,
+        keywords: formData.keywords,
+      });
 
-    setIsSaving(false);
-
-    // Success
-    toast.success('Product updated successfully!');
-    setTimeout(() => navigate('/products'), 1500);
+      setIsSaving(false);
+      toast.success('Product updated successfully!');
+      setTimeout(() => navigate('/products'), 1500);
+    } catch (err) {
+      setIsSaving(false);
+      toast.error('Failed to update product. Please try again.');
+    }
   };
 
   if (!product) return null;
@@ -354,7 +420,7 @@ export function EditProductPage() {
                 <Input
                   id="metaTitle"
                   placeholder="Handmade Crochet Sunflower Bouquet | Piko & Pearl"
-                  value={formData.metaTitle}
+                  value={formData.metaTitle ?? (product as any)?.metaTitle ?? ''}
                   onChange={(e) => handleInputChange('metaTitle', e.target.value)}
                   className="mt-1.5"
                   maxLength={60}
@@ -369,7 +435,7 @@ export function EditProductPage() {
                 <Textarea
                   id="metaDescription"
                   placeholder="Beautiful handmade crochet sunflower bouquet, perfect for gifts and home decor..."
-                  value={formData.metaDescription}
+                  value={formData.metaDescription ?? (product as any)?.metaDescription ?? ''}
                   onChange={(e) => handleInputChange('metaDescription', e.target.value)}
                   className="mt-1.5"
                   rows={3}

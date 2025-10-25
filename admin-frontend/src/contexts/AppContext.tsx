@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { categories as initialCategories, mockProducts, mockOrders } from '../data/mockData';
 
 interface Category {
@@ -6,6 +6,7 @@ interface Category {
   name: string;
   slug: string;
   icon: string;
+  image?: string;
   productCount: number;
   metaTitle?: string;
   metaDescription?: string;
@@ -32,11 +33,17 @@ interface Product {
   category: string;
   sku: string;
   price: number;
+  previousPrice?: number;
   discountPrice?: number;
   stock: number;
   featured: boolean;
   image: string;
+  images?: string[];
   description: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  keywords?: string;
+  slug?: string;
   status: 'active' | 'draft' | 'archived';
 }
 
@@ -109,8 +116,8 @@ interface AppContextType {
   userProfile: UserProfile;
   paymentMethods: PaymentMethods;
   socialAccounts: SocialAccount[];
-  addCategory: (category: Omit<Category, 'id' | 'displayOrder'>) => void;
-  updateCategory: (id: string, updates: Partial<Category>) => void;
+  addCategory: (category: Omit<Category, 'id' | 'displayOrder'>) => Promise<Category>;
+  updateCategory: (id: string, updates: Partial<Category>) => Promise<any>;
   updateUserProfile: (profile: Partial<UserProfile>) => void;
   updatePaymentMethods: (methods: Partial<PaymentMethods>) => void;
   addSocialAccount: (account: Omit<SocialAccount, 'id'>) => void;
@@ -123,9 +130,9 @@ interface AppContextType {
   updateCollection: (id: string, updates: Partial<Collection>) => void;
   deleteCollection: (id: string) => void;
   products: Product[];
-  addProduct: (product: Omit<Product, 'id'>) => void;
-  updateProduct: (id: string, updates: Partial<Product>) => void;
-  deleteProduct: (id: string) => void;
+  addProduct: (product: Omit<Product, 'id'>) => Promise<Product>;
+  updateProduct: (id: string, updates: Partial<Product>) => Promise<any>;
+  deleteProduct: (id: string) => Promise<void>;
   orders: Order[];
   updateOrder: (id: string, updates: Partial<Order>) => void;
   deleteOrder: (id: string) => void;
@@ -152,8 +159,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const [collections, setCollections] = useState<Collection[]>([]);
-  const [products, setProducts] = useState<Product[]>(mockProducts);
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [products, setProducts] = useState<Product[]>(mockProducts as Product[]);
+  const [orders, setOrders] = useState<Order[]>(mockOrders as Order[]);
   const [userProfile, setUserProfile] = useState<UserProfile>({
     firstName: 'Admin',
     lastName: 'User',
@@ -198,8 +205,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       lastSync: new Date().toISOString(),
     },
   ]);
-  
-  // Import icons for notifications
+
   const ShoppingBag = () => null;
   const AlertTriangle = () => null;
   const Gift = () => null;
@@ -218,76 +224,173 @@ export function AppProvider({ children }: { children: ReactNode }) {
       icon: ShoppingBag,
       color: '#2196F3',
     },
-    {
-      id: '2',
-      type: 'product',
-      title: 'Low Stock Alert',
-      message: 'Crochet Beach Bag - Only 6 items left',
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-      read: false,
-      icon: AlertTriangle,
-      color: '#FF9800',
-    },
-    {
-      id: '3',
-      type: 'custom-order',
-      title: 'New Custom Order Request',
-      message: 'Custom order CO-002 from Amna Tariq',
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      read: false,
-      icon: Gift,
-      color: '#9B7FD9',
-    },
-    {
-      id: '4',
-      type: 'order',
-      title: 'Order Delivered',
-      message: 'Order #5432 has been delivered to Sarah Ahmed',
-      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      read: true,
-      icon: CheckCircle,
-      color: '#4CAF50',
-    },
-    {
-      id: '5',
-      type: 'customer',
-      title: 'New Customer Registration',
-      message: 'Fatima Khan just registered',
-      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      read: true,
-      icon: User,
-      color: '#4CAF50',
-    },
-    {
-      id: '6',
-      type: 'product',
-      title: 'Product Out of Stock',
-      message: 'Tulip Crochet Flowers Set is out of stock',
-      timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
-      read: true,
-      icon: Package,
-      color: '#F44336',
-    },
   ]);
 
-  const addCategory = (category: Omit<Category, 'id' | 'displayOrder'>) => {
-    const newCategory: Category = {
-      ...category,
-      id: `cat-${Date.now()}`,
-      displayOrder: categories.length + 1,
-      productCount: 0,
-    };
-    setCategories((prev) => [...prev, newCategory]);
+  const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string) || 'http://localhost:5000/api';
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [catRes, prodRes] = await Promise.all([
+          fetch(`${API_BASE}/categories`),
+          fetch(`${API_BASE}/products`),
+        ]);
+
+        const catData = catRes.ok ? await catRes.json() : [];
+        const prodData = prodRes.ok ? await prodRes.json() : [];
+
+        const counts: Record<string, number> = {};
+        for (const p of prodData) {
+          const key = p.category || '';
+          if (!key) continue;
+          counts[key] = (counts[key] || 0) + 1;
+        }
+
+        if (Array.isArray(catData)) {
+          setCategories(
+            catData.map((c: any, i: number) => ({
+              id: c._id || c.id || `cat-${i}`,
+              name: c.name,
+              slug: c.slug,
+              icon: c.image || '🌸',
+              image: c.image || c.icon || '',
+              productCount: counts[c.name] || 0,
+              metaTitle: c.metaTitle || '',
+              metaDescription: c.metaDescription || '',
+              keywords: Array.isArray(c.keywords) ? c.keywords.join(', ') : (c.keywords || ''),
+              h1Heading: c.mainHeading || c.name,
+              introParagraph: c.content || '',
+              displayOrder: i + 1,
+              active: true,
+            }))
+          );
+        }
+
+        if (Array.isArray(prodData)) {
+          setProducts(
+            prodData.map((p: any) => ({
+              id: p._id || p.id,
+              name: p.name,
+              category: p.category,
+              slug: p.slug,
+              sku: p.sku,
+              price: p.price,
+              previousPrice: p.previousPrice ?? undefined,
+              metaTitle: p.metaTitle || '',
+              metaDescription: p.metaDescription || '',
+              keywords: Array.isArray(p.keywords) ? p.keywords.join(', ') : (p.keywords || ''),
+              stock: p.stock ?? 0,
+              featured: !!p.featured,
+              image: p.image1 || p.image || '',
+              images: [p.image1, p.image2, p.image3, p.image4].filter(Boolean),
+              description: p.description || '',
+              status: 'active',
+            })) as Product[]
+          );
+        }
+      } catch (err) {
+        // ignore
+      }
+    })();
+  }, []);
+
+  const addCategory = async (category: Omit<Category, 'id' | 'displayOrder'>) => {
+    try {
+      const keywordsArr = category.keywords
+        ? category.keywords.split(',').map(k => k.trim()).filter(Boolean)
+        : [];
+
+      const body = {
+        name: category.name,
+        slug: category.slug,
+        image: (category as any).icon || undefined,
+        mainHeading: (category as any).h1Heading || undefined,
+        content: (category as any).introParagraph || undefined,
+        metaTitle: category.metaTitle || undefined,
+        metaDescription: category.metaDescription || undefined,
+        keywords: keywordsArr,
+      };
+
+      const res = await fetch(`${API_BASE}/categories`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) throw new Error('Failed to create category');
+      const created = await res.json();
+      const newCategory: Category = {
+        id: created._id || created.id || `cat-${Date.now()}`,
+        name: created.name,
+        slug: created.slug,
+        icon: created.image || (category as any).icon || '🌸',
+        image: created.image || (category as any).icon || '',
+        productCount: 0,
+        metaTitle: created.metaTitle || category.metaTitle || '',
+        metaDescription: created.metaDescription || category.metaDescription || '',
+        keywords: Array.isArray(created.keywords) ? created.keywords.join(', ') : (created.keywords || ''),
+        h1Heading: created.mainHeading || category.h1Heading || created.name,
+        introParagraph: created.content || category.introParagraph || '',
+        displayOrder: categories.length + 1,
+        active: true,
+      };
+      setCategories(prev => [...prev, newCategory]);
+      return newCategory;
+    } catch (err) {
+      throw err;
+    }
   };
 
-  const updateCategory = (id: string, updates: Partial<Category>) => {
-    setCategories((prev) =>
-      prev.map((cat) => (cat.id === id ? { ...cat, ...updates } : cat))
-    );
+  const updateCategory = async (id: string, updates: Partial<Category>) => {
+    try {
+      const keywordsArr = updates.keywords
+        ? (updates.keywords as unknown as string).split(',').map(k => k.trim()).filter(Boolean)
+        : undefined;
+
+      const body: any = {
+        name: updates.name,
+        slug: updates.slug,
+        image: (updates as any).image || (updates as any).icon,
+        mainHeading: (updates as any).h1Heading,
+        content: (updates as any).introParagraph,
+        metaTitle: updates.metaTitle,
+        metaDescription: updates.metaDescription,
+      };
+      if (keywordsArr) body.keywords = keywordsArr;
+
+      const res = await fetch(`${API_BASE}/categories/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error('Failed to update category');
+      const updated = await res.json();
+      setCategories(prev => prev.map((cat: Category) => cat.id === id ? {
+        ...cat,
+        name: updated.name ?? updates.name ?? cat.name,
+        slug: updated.slug ?? updates.slug ?? cat.slug,
+        icon: updated.image ?? (updates as any).icon ?? cat.icon,
+        image: updated.image ?? (updates as any).image ?? cat.image,
+        metaTitle: updated.metaTitle ?? updates.metaTitle ?? cat.metaTitle,
+        metaDescription: updated.metaDescription ?? updates.metaDescription ?? cat.metaDescription,
+        keywords: Array.isArray(updated.keywords) ? updated.keywords.join(', ') : (updates.keywords ?? cat.keywords),
+        h1Heading: updated.mainHeading ?? (updates as any).h1Heading ?? cat.h1Heading,
+        introParagraph: updated.content ?? (updates as any).introParagraph ?? cat.introParagraph,
+      } : cat));
+      return updated;
+    } catch (err) {
+      throw err;
+    }
   };
 
-  const deleteCategory = (id: string) => {
-    setCategories((prev) => prev.filter((cat) => cat.id !== id));
+  const deleteCategory = async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/categories/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete category');
+      setCategories(prev => prev.filter(cat => cat.id !== id));
+    } catch (err) {
+      throw err;
+    }
   };
 
   const reorderCategories = (newOrder: Category[]) => {
@@ -317,22 +420,176 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCollections((prev) => prev.filter((col) => col.id !== id));
   };
 
-  const addProduct = (product: Omit<Product, 'id'>) => {
-    const newProduct: Product = {
-      ...product,
-      id: `prod-${Date.now()}`,
-    };
-    setProducts((prev) => [newProduct, ...prev]);
+  const addProduct = async (product: Omit<Product, 'id'>) => {
+    try {
+      const imagesArr: string[] = (product as any).images ?? ((product as any).imagesFromForm ?? []);
+      if (!imagesArr.length && (product as any).image) imagesArr.push((product as any).image);
+
+      const body: any = {
+        name: product.name,
+        category: product.category,
+        slug: (product as any).slug,
+        sku: (product as any).sku,
+        description: product.description,
+        price: Number(product.price),
+        previousPrice: (product as any).previousPrice !== undefined ? Number((product as any).previousPrice) : undefined,
+        stock: Number(product.stock),
+        image1: imagesArr[0] || (product as any).image,
+        image2: imagesArr[1] || undefined,
+        image3: imagesArr[2] || undefined,
+        image4: imagesArr[3] || undefined,
+        featured: !!product.featured,
+        metaTitle: (product as any).metaTitle,
+        metaDescription: (product as any).metaDescription,
+        keywords: (product as any).keywords ? (product as any).keywords.split(',').map((k: string) => k.trim()).filter(Boolean) : undefined,
+      };
+
+      // debug: log payload for dev (helps track missing meta fields)
+      if ((import.meta as any).env?.VITE_DEBUG === 'true') {
+        // eslint-disable-next-line no-console
+        console.debug('Creating product payload', body);
+      }
+
+      const res = await fetch(`${API_BASE}/products`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        let errMsg = 'Failed to create product';
+        try {
+          const json = await res.json();
+          if (json) {
+            if (json.message) errMsg = json.message;
+            else errMsg = JSON.stringify(json);
+          }
+        } catch (e) {
+          const txt = await res.text();
+          if (txt) errMsg = txt;
+        }
+        throw new Error(errMsg);
+      }
+      const created = await res.json();
+      const createdImages = [created.image1, created.image2, created.image3, created.image4].filter(Boolean);
+      const newProduct: Product = {
+        id: created._id || created.id || `prod-${Date.now()}`,
+        name: created.name,
+        category: created.category,
+        slug: created.slug,
+        sku: created.sku,
+        price: created.price,
+        previousPrice: created.previousPrice ?? undefined,
+        stock: created.stock ?? 0,
+        featured: !!created.featured,
+        image: createdImages[0] || created.image1 || created.image || '',
+        images: createdImages,
+        description: created.description || '',
+        metaTitle: created.metaTitle || '',
+        metaDescription: created.metaDescription || '',
+        keywords: Array.isArray(created.keywords) ? created.keywords.join(', ') : (created.keywords || ''),
+        status: 'active',
+      };
+
+      setProducts(prev => [newProduct, ...prev]);
+
+      const productCategoryName = created.category ?? product.category;
+      if (productCategoryName) {
+        setCategories(prev => prev.map((cat: Category) =>
+          cat.name === productCategoryName ? { ...cat, productCount: (cat.productCount || 0) + 1 } : cat
+        ));
+      }
+
+      return newProduct;
+    } catch (err) {
+      throw err;
+    }
   };
 
-  const updateProduct = (id: string, updates: Partial<Product>) => {
-    setProducts((prev) =>
-      prev.map((prod) => (prod.id === id ? { ...prod, ...updates } : prod))
-    );
+  const updateProduct = async (id: string, updates: Partial<Product>) => {
+    try {
+      const prevProduct = products.find(p => p.id === id);
+
+      const updImages: string[] = (updates as any).images ?? [];
+      if ((updates as any).image && !updImages.length) updImages[0] = (updates as any).image;
+
+      const body: any = {
+        name: updates.name,
+        category: updates.category,
+        slug: (updates as any).slug,
+        sku: (updates as any).sku,
+        description: updates.description,
+        price: updates.price !== undefined ? Number(updates.price) : undefined,
+        previousPrice: (updates as any).previousPrice !== undefined ? Number((updates as any).previousPrice) : undefined,
+        stock: updates.stock !== undefined ? Number(updates.stock) : undefined,
+        image1: updImages[0] || (updates as any).image,
+        image2: updImages[1] || undefined,
+        image3: updImages[2] || undefined,
+        image4: updImages[3] || undefined,
+        featured: updates.featured,
+        metaTitle: (updates as any).metaTitle,
+        metaDescription: (updates as any).metaDescription,
+        keywords: (updates as any).keywords ? (updates as any).keywords.split(',').map((k: string) => k.trim()).filter(Boolean) : undefined,
+      };
+
+      const res = await fetch(`${API_BASE}/products/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error('Failed to update product');
+      const updated = await res.json();
+
+      setProducts(prev => prev.map((p: Product) => p.id === id ? {
+        ...p,
+        name: updated.name ?? updates.name ?? p.name,
+        category: updated.category ?? updates.category ?? p.category,
+        sku: updated.sku ?? (updates as any).sku ?? p.sku,
+        price: updated.price ?? updates.price ?? p.price,
+        previousPrice: updated.previousPrice ?? (updates as any).previousPrice ?? p.previousPrice,
+        stock: updated.stock ?? updates.stock ?? p.stock,
+        featured: typeof updated.featured === 'boolean' ? updated.featured : (updates.featured ?? p.featured),
+        image: (updated.image1 ?? (updates as any).image ?? p.image) as string,
+        images: [updated.image1, updated.image2, updated.image3, updated.image4].filter(Boolean) as string[] | undefined,
+        description: updated.description ?? updates.description ?? p.description,
+        metaTitle: updated.metaTitle ?? updates.metaTitle ?? p.metaTitle,
+        metaDescription: updated.metaDescription ?? updates.metaDescription ?? p.metaDescription,
+        keywords: Array.isArray(updated.keywords) ? updated.keywords.join(', ') : (updates.keywords ?? p.keywords),
+      } : p));
+
+      const newCategoryName = updated.category ?? updates.category;
+      if (prevProduct && newCategoryName && prevProduct.category !== newCategoryName) {
+        setCategories(prev => prev.map((cat: Category) => {
+          if (cat.name === prevProduct.category) {
+            return { ...cat, productCount: Math.max(0, (cat.productCount || 0) - 1) };
+          }
+          if (cat.name === newCategoryName) {
+            return { ...cat, productCount: (cat.productCount || 0) + 1 };
+          }
+          return cat;
+        }));
+      }
+
+      return updated;
+    } catch (err) {
+      throw err;
+    }
   };
 
-  const deleteProduct = (id: string) => {
-    setProducts((prev) => prev.filter((prod) => prod.id !== id));
+  const deleteProduct = async (id: string) => {
+    try {
+      const productToDelete = products.find(p => p.id === id);
+      const res = await fetch(`${API_BASE}/products/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete product');
+      setProducts(prev => prev.filter(prod => prod.id !== id));
+
+      if (productToDelete?.category) {
+        setCategories(prev => prev.map((cat: Category) =>
+          cat.name === productToDelete.category ? { ...cat, productCount: Math.max(0, (cat.productCount || 0) - 1) } : cat
+        ));
+      }
+    } catch (err) {
+      throw err;
+    }
   };
 
   const updateOrder = (id: string, updates: Partial<Order>) => {
