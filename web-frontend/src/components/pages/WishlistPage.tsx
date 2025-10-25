@@ -5,16 +5,41 @@ import { ImageWithFallback } from "../figma/ImageWithFallback";
 import { Heart, ShoppingBag, Star, ArrowLeft, Trash2 } from "lucide-react";
 import { useWishlist } from "../WishlistContext";
 import { useCart } from "../CartContext";
-import { toast } from "sonner@2.0.3";
+import { ProductCard } from "../ProductCard";
+import { toast } from "sonner";
 
 interface WishlistPageProps {
   onNavigate: (page: string) => void;
+  products?: any[];
+  categories?: any[];
 }
 
-export function WishlistPage({ onNavigate }: WishlistPageProps) {
+export function WishlistPage({ onNavigate, products, categories }: WishlistPageProps) {
   const { items: wishlistItems, removeItem } = useWishlist();
   const { addItem } = useCart();
   
+  // try to use the full products list passed via props (App will pass products)
+  // If a matching product is found in the backend-fetched products, use its image fields
+  // to ensure wishlist shows the DB image.
+  // (If App does not pass products, we gracefully fallback to the local wishlist item image.)
+  const findProductForItem = (item: any, products?: any[]) => {
+    if (!products || products.length === 0) return null;
+    // direct productId
+    if (item.productId) {
+      const byId = products.find(p => p._id === item.productId || p.id === item.productId);
+      if (byId) return byId;
+    }
+    // parse id like 'category-<id>' or 'category-<slug>'
+    const parts = (item.id || '').toString().split('-');
+    const last = parts[parts.length - 1];
+    let found = products.find(p => (p._id && p._id.toString() === last.toString()) || (p.id && p.id.toString() === last.toString()));
+    if (found) return found;
+    // try slug match on name
+    const createSlug = (text: string) => text?.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const itemSlug = createSlug(last) || createSlug(item.name || '');
+    found = products.find(p => createSlug(p.name || '') === itemSlug || createSlug(p.name || '') === createSlug(item.name || ''));
+    return found || null;
+  };
   console.log('WishlistPage - wishlistItems:', wishlistItems);
   console.log('WishlistPage - localStorage:', localStorage.getItem('piko-pearl-wishlist'));
 
@@ -84,115 +109,39 @@ export function WishlistPage({ onNavigate }: WishlistPageProps) {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {wishlistItems.map((item) => (
-                <Card 
-                  key={item.id} 
-                  className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-card overflow-hidden"
-                >
-                  <CardContent className="p-0">
-                    <div className="relative overflow-hidden">
-                      <ImageWithFallback
-                        src={item.image}
-                        alt={item.name}
-                        className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
-                        onClick={() => {
-                          const parts = item.id.split('-');
-                          const category = parts[0];
-                          const id = parts[1];
-                          onNavigate(`product-${category}-${id}`);
-                        }}
-                      />
-                      
-                      <Badge 
-                        className="absolute top-3 left-3 shadow-sm" 
-                        variant={getBadgeVariant(item.badge)}
-                      >
-                        {item.badge}
-                      </Badge>
-                      
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white/90 h-9 w-9 rounded-full shadow-sm text-red-500 hover:text-red-600"
-                        onClick={() => removeFromWishlist(item.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                      
-                      <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <Button 
-                          className="w-full bg-primary/90 backdrop-blur-sm hover:bg-primary"
-                          onClick={() => handleAddToCart(item)}
-                        >
-                          <ShoppingBag className="h-4 w-4 mr-2" />
-                          Add to Cart
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="p-6">
-                      <div className="flex items-center mb-2">
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < Math.floor(item.rating)
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
-                          <span className="text-sm text-muted-foreground ml-1">
-                            ({item.reviews})
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <h3 
-                        className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors cursor-pointer"
-                        onClick={() => {
-                          const parts = item.id.split('-');
-                          const category = parts[0];
-                          const id = parts[1];
-                          onNavigate(`product-${category}-${id}`);
-                        }}
-                      >
-                        {item.name}
-                      </h3>
-                      
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {item.description}
-                      </p>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-lg font-semibold text-foreground">
-                            Rs {item.price}
-                          </span>
-                          {item.originalPrice && (
-                            <span className="text-sm text-muted-foreground line-through">
-                              Rs {item.originalPrice}
-                            </span>
-                          )}
-                        </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {
-                            const parts = item.id.split('-');
-                            const category = parts[0];
-                            const id = parts[1];
-                            onNavigate(`product-${category}-${id}`);
-                          }}
-                        >
-                          View Details
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              {wishlistItems.map((item: any) => {
+                const productFound = findProductForItem(item, products);
+                const productForCard = productFound
+                  ? productFound
+                  : {
+                      ...item,
+                      image1: item.image,
+                      previousPrice: item.previousPrice || item.originalPrice,
+                    };
+
+                return (
+                  <div key={item.id} className="relative">
+                    {/* Render using ProductCard to match featured product layout; hide description */}
+                    <ProductCard
+                      product={productForCard}
+                      categories={categories}
+                      onNavigate={onNavigate}
+                      hideDescription={true}
+                    />
+
+                    {/* Remove button overlay */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white/90 h-9 w-9 rounded-full shadow-sm text-red-500 hover:text-red-600"
+                      onClick={() => removeFromWishlist(item.id)}
+                      aria-label="Remove from wishlist"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                );
+              })}
             </div>
 
             <div className="mt-12 text-center">

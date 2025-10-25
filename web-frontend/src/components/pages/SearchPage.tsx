@@ -7,7 +7,7 @@ import { ImageWithFallback } from "../figma/ImageWithFallback";
 import { ArrowLeft, Search, Filter, Heart, ShoppingBag, Star } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useCart } from "../CartContext";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 
 interface SearchPageProps {
   onNavigate: (page: string) => void;

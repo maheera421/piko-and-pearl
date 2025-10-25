@@ -5,10 +5,11 @@ import { ArrowRight } from "lucide-react";
 
 interface ProductCategoriesProps {
   onNavigate?: (page: string) => void;
+  categories?: any[];
 }
 
-export function ProductCategories({ onNavigate }: ProductCategoriesProps) {
-  const categories = [
+export function ProductCategories({ onNavigate, categories }: ProductCategoriesProps) {
+  const fallback = [
     {
       name: "Flowers",
       description: "Beautiful blooms that last forever",
@@ -46,6 +47,26 @@ export function ProductCategories({ onNavigate }: ProductCategoriesProps) {
     }
   ];
 
+  // Build image URLs: if image is already absolute (http/data) use as-is, otherwise prefix with the server root
+  const API_BASE = (import.meta.env.VITE_API_BASE as string) || 'http://localhost:5000/api';
+  const SERVER_ROOT = API_BASE.replace(/\/api\/?$/, '');
+
+  const buildImageUrl = (img?: string) => {
+    if (!img) return '';
+    const trimmed = img.toString();
+    // absolute URLs or data URIs
+    if (/^(https?:)?\/\//i.test(trimmed) || trimmed.startsWith('data:')) return trimmed;
+    // otherwise prefix with server root
+    return `${SERVER_ROOT}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`;
+  };
+
+  const useCategories = categories && categories.length ? categories.map(c => ({
+    name: c.name,
+    description: c.content || c.metaDescription || '',
+    image: buildImageUrl(c.image),
+    page: c.slug || c.name.toLowerCase()
+  })) : fallback;
+
   return (
     <section className="py-16 md:py-24 bg-gradient-to-b from-background to-purple-50/30 dark:to-black">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -61,7 +82,7 @@ export function ProductCategories({ onNavigate }: ProductCategoriesProps) {
 
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {categories.map((category, index) => (
+          {useCategories.map((category, index) => (
             <Card 
               key={category.name} 
               className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-card backdrop-blur-sm overflow-hidden"
@@ -77,17 +98,9 @@ export function ProductCategories({ onNavigate }: ProductCategoriesProps) {
                 </div>
                 
                 <div className="p-6">
-                  <h3 className="text-xl font-semibold text-foreground mb-2">
-                    {category.name}
-                  </h3>
-                  <p className="text-muted-foreground mb-4 line-clamp-1 overflow-hidden text-ellipsis whitespace-nowrap">
-                    {category.description}
-                  </p>
-                  <Button 
-                    variant="ghost" 
-                    className="group/btn p-0 h-auto text-primary hover:text-primary-foreground hover:bg-primary"
-                    onClick={() => onNavigate?.(category.page)}
-                  >
+                  <h3 className="text-xl font-semibold text-foreground mb-2">{category.name}</h3>
+                  <p className="text-muted-foreground mb-4 line-clamp-1 overflow-hidden text-ellipsis whitespace-nowrap">{category.description}</p>
+                  <Button variant="ghost" className="group/btn p-0 h-auto text-primary hover:text-primary-foreground hover:bg-primary" onClick={() => onNavigate?.(category.page || category.name.toLowerCase())}>
                     Shop {category.name}
                     <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                   </Button>

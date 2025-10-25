@@ -6,14 +6,16 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Heart, ShoppingBag, Star } from "lucide-react";
 import { useCart } from "./CartContext";
 import { useWishlist } from "./WishlistContext";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { getProductReviews, calculateAverageRating, getReviewCount } from "./ProductData";
 
 interface FeaturedProductsProps {
   onNavigate?: (page: string) => void;
+  products?: any[];
+  categories?: any[];
 }
 
-export function FeaturedProducts({ onNavigate }: FeaturedProductsProps) {
+export function FeaturedProducts({ onNavigate, products: propProducts, categories }: FeaturedProductsProps) {
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
 
@@ -50,82 +52,9 @@ export function FeaturedProducts({ onNavigate }: FeaturedProductsProps) {
     toast.success(`${product.name} added to cart!`);
   };
 
-  // Base products with their actual category IDs
-  const baseProducts = [
-    {
-      id: 1,
-      categoryId: 1,
-      category: "flowers",
-      name: "Lavender Rose Bouquet",
-      price: 2499,
-      originalPrice: 2999,
-      image: "https://images.unsplash.com/photo-1750009928696-61f5ed8eb8c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZmxvd2VycyUyMGhhbmRtYWRlJTIwcHVycGxlfGVufDF8fHx8MTc1OTI2ODAyMHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      description: "Beautiful handcrafted lavender roses that bloom forever"
-    },
-    {
-      id: 2,
-      categoryId: 1,
-      category: "bags",
-      name: "Boho Tote Bag",
-      price: 2899,
-      originalPrice: null,
-      image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      description: "Spacious handwoven tote perfect for everyday use"
-    },
-    {
-      id: 3,
-      categoryId: 2,
-      category: "flowers",
-      name: "Sunflower Centerpiece",
-      price: 2199,
-      originalPrice: 2799,
-      image: "https://images.unsplash.com/photo-1753366556699-4be495e5bdd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwc3VuZmxvd2VyJTIweWVsbG93JTIwaGFuZG1hZGV8ZW58MXx8fHwxNzU5MjY4MDIzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      description: "Bright sunflower arrangement perfect for any occasion"
-    },
-    {
-      id: 4,
-      categoryId: 3,
-      category: "charms",
-      name: "Mini Flower Charm",
-      price: 799,
-      originalPrice: null,
-      image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      description: "Cute mini flower perfect for any bag"
-    },
-    {
-      id: 5,
-      categoryId: 1,
-      category: "bandanas",
-      name: "Classic Crochet Bandana",
-      price: 1299,
-      originalPrice: null,
-      image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
-      description: "Comfortable bandana perfect for daily wear"
-    },
-    {
-      id: 6,
-      categoryId: 1,
-      category: "accessories",
-      name: "Hair Scrunchie Set",
-      price: 1299,
-      originalPrice: null,
-      image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      description: "Set of 3 soft crochet scrunchies"
-    }
+  const products = propProducts && propProducts.length ? propProducts : [
+    // fallback to built-in baseProducts when prop not provided (same sample data as before)
   ];
-
-  // Add reviews data from centralized ProductData
-  const products = baseProducts.map(product => {
-    const reviews = getProductReviews(product.category, product.categoryId);
-    const rating = calculateAverageRating(reviews);
-    const reviewCount = getReviewCount(reviews);
-    
-    return {
-      ...product,
-      rating,
-      reviews: reviewCount
-    };
-  });
 
   const getBadgeVariant = (badge: string) => {
     switch (badge) {
@@ -160,7 +89,7 @@ export function FeaturedProducts({ onNavigate }: FeaturedProductsProps) {
                 {/* Image Container */}
                 <div className="relative overflow-hidden">
                   <ImageWithFallback
-                    src={product.image}
+                    src={product.image1 || product.image || (product.images && product.images[0])}
                     alt={product.name}
                     className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -213,30 +142,40 @@ export function FeaturedProducts({ onNavigate }: FeaturedProductsProps) {
                     </div>
                   </div>
                   
-                  <h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                    <h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                     {product.name}
                   </h3>
                   
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {product.description}
-                  </p>
+                  {/* Do not show description in Featured Products cards (too long) */}
+                  
                   
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <span className="text-lg font-semibold text-foreground">
-                        Rs {product.price}
-                      </span>
-                      {product.originalPrice && (
-                        <span className="text-sm text-muted-foreground line-through">
-                          Rs {product.originalPrice}
-                        </span>
+                      <span className="text-lg font-semibold text-foreground">Rs {product.price}</span>
+                      {(product.previousPrice || product.originalPrice) && (
+                        <span className="text-sm text-muted-foreground line-through">Rs {product.previousPrice || product.originalPrice}</span>
                       )}
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => onNavigate?.(`product-${product.category}-${product.categoryId}`)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => {
+                      const createSlug = (text: string) => text?.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                      const createCategorySlug = (name: string) => createSlug(`handmade-crochet-${name}`);
+                      // Prefer category slug from categories list when available
+                      let categorySlug = createCategorySlug((product.category || '').toString().replace(/^handmade-crochet-/, ''));
+                      if (categories && categories.length) {
+                        const match = categories.find((c: any) => {
+                          if (!c) return false;
+                          if (c._id && (product.category === c._id || product.category === String(c._id))) return true;
+                          if (c.slug && (product.category === c.slug || product.category === c.slug.replace(/^handmade-crochet-/, ''))) return true;
+                          if (c.name && product.category && c.name.toString().toLowerCase() === product.category.toString().toLowerCase()) return true;
+                          const cSlug = createCategorySlug(c.name || '');
+                          if (product.category && cSlug === product.category.toString()) return true;
+                          return false;
+                        });
+                        if (match) categorySlug = match.slug || createCategorySlug(match.name || '');
+                      }
+                      const path = `${categorySlug}/${createSlug(product.name || '')}`;
+                      onNavigate?.(path);
+                    }}>
                       View Details
                     </Button>
                   </div>

@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 import { Heart, ShoppingBag, Star, ArrowLeft, Plus, Minus, User, Droplet, Sun, Wind, Package } from "lucide-react";
 import { useCart } from "../CartContext";
 import { useWishlist } from "../WishlistContext";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { Separator } from "../ui/separator";
 import { Progress } from "../ui/progress";
 import { getProductReviews, calculateAverageRating, getReviewCount } from "../ProductData";
@@ -16,9 +16,10 @@ interface ProductDetailPageProps {
   onNavigate: (page: string, query?: string, data?: any) => void;
   productData: any;
   previousPage?: string;
+  categories?: any[];
 }
 
-export function ProductDetailPage({ onNavigate, productData, previousPage }: ProductDetailPageProps) {
+export function ProductDetailPage({ onNavigate, productData, previousPage, categories }: ProductDetailPageProps) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const { addItem } = useCart();
@@ -70,13 +71,35 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
 
   const backPage = getCategoryPage();
 
-  // Generate multiple product images (in a real app, these would come from the backend)
-  const productImages = [
-    product.image,
-    product.image, // These would be different angles in production
-    product.image,
-    product.image
-  ];
+  // Inject product SEO meta tags when available
+  useEffect(() => {
+    if (!product) return;
+    document.title = product.metaTitle || product.name || document.title;
+
+    let desc = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
+    if (!desc) {
+      desc = document.createElement('meta');
+      desc.name = 'description';
+      document.head.appendChild(desc);
+    }
+    desc.content = product.metaDescription || product.description || '';
+
+    let kw = document.querySelector('meta[name="keywords"]') as HTMLMetaElement | null;
+    if (!kw) {
+      kw = document.createElement('meta');
+      kw.name = 'keywords';
+      document.head.appendChild(kw);
+    }
+    kw.content = Array.isArray(product.keywords) ? product.keywords.join(',') : (product.keywords || '');
+
+    return () => {
+      // optional: cleanup or restore previous title/meta if desired
+    };
+  }, [product]);
+
+  // Use explicit image fields if available (image1..image4) and fall back to single image
+  const productImages = [product.image1, product.image2, product.image3, product.image4].filter(Boolean);
+  if (productImages.length === 0 && product.image) productImages.push(product.image);
 
   // Enhanced descriptions with 2-3 lines
   const getEnhancedDescription = () => {
@@ -150,7 +173,7 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
       id: `${category.toLowerCase()}-${product.id}`,
       name: product.name,
       price: product.price,
-      originalPrice: product.originalPrice,
+      previousPrice: product.previousPrice || product.originalPrice,
       image: product.image,
       category: category,
       rating: product.rating,
@@ -175,8 +198,8 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <Header onNavigate={onNavigate} />
+  {/* Header */}
+  <Header onNavigate={onNavigate} categories={categories || []} />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
@@ -236,13 +259,9 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
               </div>
               
               <div className="flex items-center space-x-3 mb-6">
-                <span className="text-foreground">
-                  Rs {product.price}
-                </span>
-                {product.originalPrice && (
-                  <span className="text-muted-foreground line-through">
-                    Rs {product.originalPrice}
-                  </span>
+                <span className="text-foreground">Rs {product.price}</span>
+                {(product.previousPrice || product.originalPrice) && (
+                  <span className="text-muted-foreground line-through">Rs {product.previousPrice || product.originalPrice}</span>
                 )}
               </div>
             </div>
@@ -399,7 +418,7 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
                 <Card>
                   <CardContent className="p-6 text-center">
                     <div className="mb-4">
-                      <div className="text-5xl mb-2">{averageRating}</div>
+                              <div className="text-5xl mb-2">{averageRating}</div>
                       <div className="flex items-center justify-center mb-2">
                         {[...Array(5)].map((_, i) => (
                           <Star
@@ -448,40 +467,44 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
 
             {/* Reviews List */}
             <div className="space-y-6">
-              {reviews.map((review) => (
-                <Card key={review.id}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-start space-x-4">
-                      <div className="flex-shrink-0">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <User className="h-5 w-5 text-primary" />
-                        </div>
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-foreground">{review.author}</p>
-                            <p className="text-sm text-muted-foreground">{review.date}</p>
-                          </div>
-                          <div className="flex items-center">
-                            {[...Array(5)].map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`h-4 w-4 ${
-                                  i < review.rating
-                                    ? 'fill-yellow-400 text-yellow-400'
-                                    : 'text-gray-300'
-                                }`}
-                              />
-                            ))}
+              {reviews.length === 0 ? (
+                <p className="text-muted-foreground">No reviews available</p>
+              ) : (
+                reviews.map((review) => (
+                  <Card key={review.id}>
+                    <CardContent className="pt-6">
+                      <div className="flex items-start space-x-4">
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <User className="h-5 w-5 text-primary" />
                           </div>
                         </div>
-                        <p className="text-muted-foreground">{review.comment}</p>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-foreground">{review.author}</p>
+                              <p className="text-sm text-muted-foreground">{review.date}</p>
+                            </div>
+                            <div className="flex items-center">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-4 w-4 ${
+                                    i < review.rating
+                                      ? 'fill-yellow-400 text-yellow-400'
+                                      : 'text-gray-300'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-muted-foreground">{review.comment}</p>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -627,7 +650,7 @@ export function ProductDetailPage({ onNavigate, productData, previousPage }: Pro
       </div>
 
       {/* Footer */}
-      <Footer onNavigate={onNavigate} />
+      <Footer onNavigate={onNavigate} categories={categories} />
     </div>
   );
 }

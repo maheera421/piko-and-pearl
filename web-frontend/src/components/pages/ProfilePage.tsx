@@ -6,7 +6,7 @@ import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
 import { ArrowLeft, User, Mail, Lock, UserPlus, Moon, Sun, Upload, X } from "lucide-react";
 import { useAuth } from "../AuthContext";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 
 interface ProfilePageProps {
   onNavigate: (page: string) => void;

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 import { ArrowLeft, Minus, Plus, Trash2, CreditCard, Truck, Shield } from "lucide-react";
 import { useCart } from "../CartContext";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 
 interface CartPageProps {
   onNavigate: (page: string) => void;

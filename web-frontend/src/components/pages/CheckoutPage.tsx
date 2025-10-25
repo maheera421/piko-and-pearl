@@ -11,7 +11,7 @@ import { ImageWithFallback } from "../figma/ImageWithFallback";
 import { ArrowLeft, CreditCard, Truck, MapPin, Phone, Mail, ShoppingBag, Lock } from "lucide-react";
 import { useCart } from "../CartContext";
 import { useAuth } from "../AuthContext";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 
 interface CheckoutPageProps {
   onNavigate: (page: string) => void;

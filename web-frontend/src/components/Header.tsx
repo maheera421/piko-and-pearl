@@ -10,22 +10,30 @@ import logo from "figma:asset/b36bbc8fe399bdb0a7973841c9c95ba843e68528.png";
 
 interface HeaderProps {
   onNavigate?: (page: string, query?: string) => void;
+  categories?: any[];
 }
 
-export function Header({ onNavigate }: HeaderProps) {
+export function Header({ onNavigate, categories }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showWishlist, setShowWishlist] = useState(false);
   const { getTotalItems } = useCart();
 
-  const navigation = [
+  const defaultNav = [
     { name: "Home", page: "home" },
-    { name: "Flowers", page: "flowers" },
-    { name: "Bags", page: "bags" },
-    { name: "Bag Charms", page: "charms" },
-    { name: "Bandanas", page: "bandanas" },
-    { name: "Accessories", page: "accessories" },
   ];
+
+  // build navigation from categories if provided
+  const navigation = categories && categories.length > 0
+    ? [{ name: 'Home', page: 'home' }, ...categories.map(c => ({ name: c.name, page: c.slug || c.name.toLowerCase() }))]
+    : [
+        { name: "Home", page: "home" },
+        { name: "Flowers", page: "flowers" },
+        { name: "Bags", page: "bags" },
+        { name: "Bag Charms", page: "charms" },
+        { name: "Bandanas", page: "bandanas" },
+        { name: "Accessories", page: "accessories" },
+      ];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,8 +92,8 @@ export function Header({ onNavigate }: HeaderProps) {
             </nav>
           </div>
 
-          {/* Search Bar - Reduced Width */}
-          <div className="flex-1 max-w-md">
+          {/* Search Bar - expands to fill remaining space so it shifts right when categories occupy left */}
+          <div className="flex-1 mx-4">
             <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input

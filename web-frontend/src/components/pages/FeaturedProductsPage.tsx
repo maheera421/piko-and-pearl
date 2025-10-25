@@ -7,19 +7,33 @@ import { Input } from "../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useCart } from "../CartContext";
 import { useWishlist } from "../WishlistContext";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { getProductReviews, calculateAverageRating, getReviewCount } from "../ProductData";
 
 interface FeaturedProductsPageProps {
   onNavigate: (page: string) => void;
+  products?: any[];
+  categories?: any[];
 }
 
-export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) {
+const createSlug = (text: string) => text?.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const createCategorySlug = (text: string) => createSlug(`handmade-crochet-${text}`);
+
+export function FeaturedProductsPage({ onNavigate, products: propProducts, categories }: FeaturedProductsPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("featured");
   const [filterBy, setFilterBy] = useState("all");
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
+
+  const categoryOptions = [
+    { value: "all", label: "All Categories" },
+    { value: "flowers", label: "Flowers" },
+    { value: "bags", label: "Bags" },
+    { value: "charms", label: "Bag Charms" },
+    { value: "bandanas", label: "Bandanas" },
+    { value: "accessories", label: "Accessories" }
+  ];
 
   const toggleWishlist = (product: any, category: string) => {
     const wishlistItem = {
@@ -33,14 +47,10 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
       reviews: product.reviews,
       description: product.description
     };
-    
+
     const wasInWishlist = isInWishlist(`${category}-${product.id}`);
     toggleItem(wishlistItem);
-    toast.success(
-      wasInWishlist
-        ? `${product.name} removed from wishlist` 
-        : `${product.name} added to wishlist!`
-    );
+    toast.success(wasInWishlist ? `${product.name} removed from wishlist` : `${product.name} added to wishlist!`);
   };
 
   const handleAddToCart = (product: any, category: string) => {
@@ -54,7 +64,7 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
     toast.success(`${product.name} added to cart!`);
   };
 
-  // Base featured products from various categories
+  // Base featured products from various categories (fallback)
   const baseFeaturedProducts = [
     // Flowers
     {
@@ -162,8 +172,10 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
     }
   ];
 
+  const productsToUse = propProducts && propProducts.length ? propProducts : baseFeaturedProducts;
+
   // Add reviews data from centralized ProductData
-  const allFeaturedProducts = baseFeaturedProducts.map(product => {
+  const allFeaturedProducts = productsToUse.map(product => {
     const reviews = getProductReviews(product.category, product.id);
     const rating = calculateAverageRating(reviews);
     const reviewCount = getReviewCount(reviews);
@@ -174,15 +186,6 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
       reviews: reviewCount
     };
   });
-
-  const categories = [
-    { value: "all", label: "All Categories" },
-    { value: "flowers", label: "Flowers" },
-    { value: "bags", label: "Bags" },
-    { value: "charms", label: "Bag Charms" },
-    { value: "bandanas", label: "Bandanas" },
-    { value: "accessories", label: "Accessories" }
-  ];
 
   const sortOptions = [
     { value: "featured", label: "Featured First" },
@@ -255,11 +258,11 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
             {/* Search */}
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
+                <Input
                 type="text"
                 placeholder="Search featured products..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e: any) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
@@ -275,7 +278,7 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((category) => (
+                  {categoryOptions.map((category) => (
                     <SelectItem key={category.value} value={category.value}>
                       {category.label}
                     </SelectItem>
@@ -319,12 +322,27 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
               >
                 <CardContent className="p-0">
                   <div className="relative overflow-hidden">
-                    <ImageWithFallback
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
-                      onClick={() => onNavigate(`product-${product.category}-${product.id}`)}
-                    />
+                        <ImageWithFallback
+                          src={product.image1 || product.image || (product.images && product.images[0])}
+                          alt={product.name}
+                          className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
+                          onClick={() => {
+                            let categorySlug = createCategorySlug((product.category || '').toString().replace(/^handmade-crochet-/, ''));
+                            if (categories && categories.length) {
+                              const match = categories.find((c: any) => {
+                                if (!c) return false;
+                                if (c._id && (product.category === c._id || product.category === String(c._id))) return true;
+                                if (c.slug && (product.category === c.slug || product.category === c.slug.replace(/^handmade-crochet-/, ''))) return true;
+                                if (c.name && product.category && c.name.toString().toLowerCase() === product.category.toString().toLowerCase()) return true;
+                                const cSlug = createCategorySlug(c.name || '');
+                                if (product.category && cSlug === product.category.toString()) return true;
+                                return false;
+                              });
+                              if (match) categorySlug = match.slug || createCategorySlug(match.name || '');
+                            }
+                            onNavigate?.(`${categorySlug}/${createSlug(product.name || '')}`);
+                          }}
+                        />
                     
                     <Button
                       variant="ghost"
@@ -371,24 +389,35 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
                       </div>
                     </div>
                     
-                    <h3 
-                      className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors cursor-pointer"
-                      onClick={() => onNavigate(`product-${product.category}-${product.id}`)}
-                    >
+                        <h3 
+                          className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors cursor-pointer"
+                          onClick={() => {
+                            let categorySlug = createCategorySlug((product.category || '').toString().replace(/^handmade-crochet-/, ''));
+                            if (categories && categories.length) {
+                              const match = categories.find((c: any) => {
+                                if (!c) return false;
+                                if (c._id && (product.category === c._id || product.category === String(c._id))) return true;
+                                if (c.slug && (product.category === c.slug || product.category === c.slug.replace(/^handmade-crochet-/, ''))) return true;
+                                if (c.name && product.category && c.name.toString().toLowerCase() === product.category.toString().toLowerCase()) return true;
+                                const cSlug = createCategorySlug(c.name || '');
+                                if (product.category && cSlug === product.category.toString()) return true;
+                                return false;
+                              });
+                              if (match) categorySlug = match.slug || createCategorySlug(match.name || '');
+                            }
+                            onNavigate?.(`${categorySlug}/${createSlug(product.name || '')}`);
+                          }}
+                        >
                       {product.name}
                     </h3>
                     
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {product.description}
-                    </p>
+                    {/* omit description on featured product list cards */}
                     
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-2">
                         <span className="text-xl font-bold text-primary">Rs {product.price}</span>
-                        {product.originalPrice && (
-                          <span className="text-sm text-muted-foreground line-through">
-                            Rs {product.originalPrice}
-                          </span>
+                        {(product.previousPrice || product.originalPrice) && (
+                          <span className="text-sm text-muted-foreground line-through">Rs {product.previousPrice || product.originalPrice}</span>
                         )}
                       </div>
                     </div>
@@ -396,7 +425,22 @@ export function FeaturedProductsPage({ onNavigate }: FeaturedProductsPageProps) 
                     <Button 
                       variant="outline" 
                       className="w-full"
-                      onClick={() => onNavigate(`product-${product.category}-${product.id}`)}
+                      onClick={() => {
+                        let categorySlug = createCategorySlug((product.category || '').toString().replace(/^handmade-crochet-/, ''));
+                        if (categories && categories.length) {
+                          const match = categories.find((c: any) => {
+                            if (!c) return false;
+                            if (c._id && (product.category === c._id || product.category === String(c._id))) return true;
+                            if (c.slug && (product.category === c.slug || product.category === c.slug.replace(/^handmade-crochet-/, ''))) return true;
+                            if (c.name && product.category && c.name.toString().toLowerCase() === product.category.toString().toLowerCase()) return true;
+                            const cSlug = createCategorySlug(c.name || '');
+                            if (product.category && cSlug === product.category.toString()) return true;
+                            return false;
+                          });
+                          if (match) categorySlug = match.slug || createCategorySlug(match.name || '');
+                        }
+                        onNavigate?.(`${categorySlug}/${createSlug(product.name || '')}`);
+                      }}
                     >
                       View Details
                     </Button>

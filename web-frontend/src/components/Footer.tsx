@@ -12,9 +12,10 @@ import {
 
 interface FooterProps {
   onNavigate?: (page: string) => void;
+  categories?: any[];
 }
 
-export function Footer({ onNavigate }: FooterProps) {
+export function Footer({ onNavigate, categories }: FooterProps) {
   const footerLinks = {
     shop: [
       { name: "Flowers", page: "flowers" },
@@ -28,6 +29,26 @@ export function Footer({ onNavigate }: FooterProps) {
       { name: "Care Instructions", page: "care-instructions" },
       { name: "FAQ", page: "faq" }
     ]
+  };
+
+  // helper: slugify text similar to admin
+  const createSlug = (text: string): string => {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+  };
+
+  const createCategorySlug = (categoryName: string) => createSlug(`handmade-crochet-${categoryName}`);
+
+  // If categories are passed in props, prefer them for the Shop column
+  // Build a simple list of { name, page } where page is the category slug
+  const buildShopLinksFromCategories = (cats?: any[]) => {
+    if (!cats || !cats.length) return footerLinks.shop;
+    return cats.map(c => ({
+      name: c.name || c.title || 'Category',
+      page: c.slug || createCategorySlug(c.name || c.title || '')
+    }));
   };
 
 
@@ -96,7 +117,7 @@ export function Footer({ onNavigate }: FooterProps) {
           <div>
             <h4 className="font-semibold text-foreground mb-6">Shop</h4>
             <ul className="space-y-3">
-              {footerLinks.shop.map((link) => (
+              {buildShopLinksFromCategories(categories).map((link) => (
                 <li key={link.name}>
                   <button 
                     onClick={() => onNavigate?.(link.page)}
