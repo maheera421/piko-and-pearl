@@ -20,11 +20,11 @@ interface Slide {
 const slides: Slide[] = [
   {
     id: 1,
-    headingLine1: "Add a charm,",
-    headingLine2: "tell your story",
-    description: "Adorable handmade crochet bag charms and keychains to personalize your style",
-    image: slideImage1,
-    alt: "Colorful handmade crochet bag charms and keychains"
+    headingLine1: "Blooms",
+    headingLine2: "that never fade",
+    description: "Stunning crochet flowers that bring everlasting beauty to any space",
+    image: slideImage3,
+    alt: "Colorful handmade crochet flowers bouquet"
   },
   {
     id: 2,
@@ -36,11 +36,11 @@ const slides: Slide[] = [
   },
   {
     id: 3,
-    headingLine1: "Blooms",
-    headingLine2: "that never fade",
-    description: "Stunning crochet flowers that bring everlasting beauty to any space",
-    image: slideImage3,
-    alt: "Colorful handmade crochet flowers bouquet"
+    headingLine1: "Add a charm,",
+    headingLine2: "tell your story",
+    description: "Adorable handmade crochet bag charms and keychains to personalize your style",
+    image: slideImage1,
+    alt: "Colorful handmade crochet bag charms and keychains"
   }
 ];
 
@@ -85,7 +85,7 @@ export function Hero({ onNavigate }: HeroProps) {
   };
 
   return (
-    <section className="relative w-full h-screen overflow-hidden">
+    <section className="relative w-full overflow-hidden" style={{ height: '90vh' }}>
       {slides.map((slide, index) => (
         <div
           key={slide.id}
