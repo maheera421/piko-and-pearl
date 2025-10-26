@@ -9,6 +9,10 @@ interface ProductCategoriesProps {
 }
 
 export function ProductCategories({ onNavigate, categories }: ProductCategoriesProps) {
+  // If categories are still loading (null or undefined), don't render the fallback static content —
+  // return null to avoid a flash of hardcoded categories on initial page load.
+  if (categories == null) return null;
+
   const fallback = [
     {
       name: "Flowers",

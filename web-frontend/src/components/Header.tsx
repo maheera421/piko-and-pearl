@@ -24,16 +24,14 @@ export function Header({ onNavigate, categories }: HeaderProps) {
   ];
 
   // build navigation from categories if provided
-  const navigation = categories && categories.length > 0
-    ? [{ name: 'Home', page: 'home' }, ...categories.map(c => ({ name: c.name, page: c.slug || c.name.toLowerCase() }))]
-    : [
-        { name: "Home", page: "home" },
-        { name: "Flowers", page: "flowers" },
-        { name: "Bags", page: "bags" },
-        { name: "Bag Charms", page: "charms" },
-        { name: "Bandanas", page: "bandanas" },
-        { name: "Accessories", page: "accessories" },
-      ];
+  // Avoid rendering the old hardcoded list while categories are still loading (undefined).
+  // Show only 'Home' during loading to prevent flash of static categories.
+  const navigation = (categories == null)
+    ? [{ name: 'Home', page: 'home' }]
+    : (categories.length > 0
+        ? [{ name: 'Home', page: 'home' }, ...categories.map(c => ({ name: c.name, page: c.slug || c.name.toLowerCase() }))]
+        : [{ name: 'Home', page: 'home' }]
+      );
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

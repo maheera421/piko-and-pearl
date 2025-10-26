@@ -49,11 +49,12 @@ export function WishlistPage({ onNavigate, products, categories }: WishlistPageP
   };
 
   const handleAddToCart = (item: any) => {
+    const imageSrc = item.image1 || item.image || (item.images && item.images[0]) || '';
     addItem({
       id: item.id,
       name: item.name,
       price: item.price,
-      image: item.image,
+      image: imageSrc,
       category: item.category
     });
     toast.success(`${item.name} added to cart!`);

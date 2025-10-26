@@ -44,7 +44,10 @@ export function Footer({ onNavigate, categories }: FooterProps) {
   // If categories are passed in props, prefer them for the Shop column
   // Build a simple list of { name, page } where page is the category slug
   const buildShopLinksFromCategories = (cats?: any[]) => {
-    if (!cats || !cats.length) return footerLinks.shop;
+    // When cats is null or undefined the app is still loading categories from the server.
+    // Return an empty list (do not show the static fallback) to avoid a flash of old static content.
+    if (cats == null) return [];
+    if (!cats.length) return footerLinks.shop;
     return cats.map(c => ({
       name: c.name || c.title || 'Category',
       page: c.slug || createCategorySlug(c.name || c.title || '')

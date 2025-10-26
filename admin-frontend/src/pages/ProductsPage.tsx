@@ -24,7 +24,7 @@ import {
 
 export function ProductsPage() {
   const navigate = useNavigate();
-  const { products, deleteProduct: deleteProductFromContext } = useApp();
+  const { products, deleteProduct: deleteProductFromContext, updateProduct: updateProductInContext } = useApp();
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -97,9 +97,15 @@ export function ProductsPage() {
     setShowBulkDeleteDialog(false);
   };
 
-  const handleUpdateProduct = (productId: string, updates: Partial<Product>) => {
-    // This would need to be implemented in context if needed for inline editing
-    toast.info('Product update feature coming soon');
+  const handleUpdateProduct = async (productId: string, updates: Partial<Product>) => {
+    try {
+      // Call the App context to perform the update (this will call the API and update local state)
+      await updateProductInContext(productId, updates as any);
+      toast.success('Product updated');
+    } catch (err: any) {
+      const msg = err?.message || 'Failed to update product';
+      toast.error(msg);
+    }
   };
 
   return (

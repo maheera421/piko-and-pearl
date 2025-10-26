@@ -506,9 +506,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const updateProduct = async (id: string, updates: Partial<Product>) => {
-    try {
-      const prevProduct = products.find(p => p.id === id);
+    // Optimistic update: apply changes locally immediately, revert if API fails
+    const prevProduct = products.find(p => p.id === id);
 
+    // Apply optimistic patch
+    setProducts(prev => prev.map((p: Product) => p.id === id ? ({ ...p, ...(updates as Partial<Product>) }) : p));
+
+    try {
       const updImages: string[] = (updates as any).images ?? [];
       if ((updates as any).image && !updImages.length) updImages[0] = (updates as any).image;
 
@@ -539,6 +543,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!res.ok) throw new Error('Failed to update product');
       const updated = await res.json();
 
+      // Apply authoritative updated values from server
       setProducts(prev => prev.map((p: Product) => p.id === id ? {
         ...p,
         name: updated.name ?? updates.name ?? p.name,
@@ -571,6 +576,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       return updated;
     } catch (err) {
+      // revert optimistic update
+      setProducts(prev => prev.map((p: Product) => p.id === id ? (prevProduct as Product) : p));
       throw err;
     }
   };

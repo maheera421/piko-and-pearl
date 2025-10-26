@@ -78,8 +78,9 @@ export default function App() {
     : rawApiBase.replace(/\/$/, '') + '/api';
 
   // dynamic data from backend
-  const [categories, setCategories] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
+  // Use undefined to represent "not yet loaded" so components can avoid rendering static fallbacks
+  const [categories, setCategories] = useState<any[] | undefined>(undefined);
+  const [products, setProducts] = useState<any[] | undefined>(undefined);
 
   useEffect(() => {
     // Initialize currentPage from the URL path when the app first mounts
@@ -145,7 +146,7 @@ export default function App() {
     // Product detail page (categorySlug/productSlug)
     if (currentPage.includes('/')) {
       const [categorySlug, productSlug] = currentPage.split('/');
-      const match = products.find((p: any) => {
+  const match = (products || []).find((p: any) => {
         const pSlug = createSlug(p.name || '');
         const pCategorySlug = createCategorySlug((p.category || '').toString().replace(/^handmade-crochet-/, ''));
         return pSlug === productSlug || (pCategorySlug === categorySlug && pSlug === productSlug);
@@ -161,7 +162,7 @@ export default function App() {
     }
 
     // Category page
-    const matchedCategory = categories.find(c => c.slug === currentPage || createCategorySlug(c.name) === currentPage);
+  const matchedCategory = (categories || []).find(c => c.slug === currentPage || createCategorySlug(c.name) === currentPage);
     if (matchedCategory) {
       document.title = matchedCategory.metaTitle || matchedCategory.name || 'Piko and Pearl';
       const desc = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
@@ -177,8 +178,8 @@ export default function App() {
 
   // Helper: get products grouped by category name (from fetched products)
   const getAllProducts = () => {
-    const grouped: any = {};
-    products.forEach((p: any) => {
+  const grouped: any = {};
+  (products || []).forEach((p: any) => {
       const key = (p.category || 'uncategorized').toString().toLowerCase();
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(p);
@@ -202,7 +203,7 @@ export default function App() {
       <Hero onNavigate={navigate} />
   <main>
     <ProductCategories onNavigate={navigate} categories={categories} />
-  <FeaturedProducts onNavigate={navigate} products={products.filter((p: any) => p.featured)} categories={categories} />
+  <FeaturedProducts onNavigate={navigate} products={(products && products.filter((p: any) => p.featured)) as any} categories={categories} />
         <About onNavigate={navigate} />
       </main>
       <Footer onNavigate={navigate} categories={categories} />
@@ -217,25 +218,25 @@ export default function App() {
 
         // Try to find a product where the slug of the name matches productSlug
         // and its category slug (generated from product.category) matches categorySlug.
-        const match = products.find((p: any) => {
+      const match = (products || []).find((p: any) => {
           const pSlug = createSlug(p.name || '');
           const pCategorySlug = createCategorySlug((p.category || '').toString().replace(/^handmade-crochet-/, ''));
           return pSlug === productSlug || (pCategorySlug === categorySlug && pSlug === productSlug);
         });
 
         if (match) {
-          const allProductsForCategory = products.filter((p: any) => createCategorySlug((p.category || '').toString().replace(/^handmade-crochet-/, '')) === categorySlug);
+          const allProductsForCategory = (products || []).filter((p: any) => createCategorySlug((p.category || '').toString().replace(/^handmade-crochet-/, '')) === categorySlug);
           // Use product's category name (from product document) for display
-          const productCategoryName = match.category || (categories.find((c: any) => createCategorySlug(c.name) === categorySlug)?.name) || categorySlug;
+          const productCategoryName = match.category || ((categories || []).find((c: any) => createCategorySlug(c.name) === categorySlug)?.name) || categorySlug;
           const productData = { product: match, category: productCategoryName, allProducts: allProductsForCategory };
           return <ProductDetailPage onNavigate={navigate} productData={productData} previousPage={previousPage} categories={categories} />;
         }
       }
 
       // If currentPage matches a category slug, render the CategoryPage dynamically
-      const matchedCategory = categories.find(c => c.slug === currentPage || createCategorySlug(c.name) === currentPage);
+  const matchedCategory = (categories || []).find(c => c.slug === currentPage || createCategorySlug(c.name) === currentPage);
       if (matchedCategory) {
-        const catProducts = products.filter((p: any) => {
+  const catProducts = (products || []).filter((p: any) => {
           const pCatSlug = createCategorySlug((p.category || '').toString().replace(/^handmade-crochet-/, ''));
           return pCatSlug === currentPage || (p.category && p.category.toString().toLowerCase() === (matchedCategory.name || '').toString().toLowerCase());
         });
@@ -257,7 +258,7 @@ export default function App() {
       case 'wishlist':
         return <WishlistPage onNavigate={navigate} products={products} categories={categories} />;
       case 'featured':
-        return <FeaturedProductsPage onNavigate={navigate} products={products.filter((p: any) => p.featured)} categories={categories} />;
+  return <FeaturedProductsPage onNavigate={navigate} products={(products && products.filter((p: any) => p.featured)) as any} categories={categories} />;
       // legacy pages removed/not implemented: 'eternal-blooms' and 'new-collection'
       // they will fallthrough to the default HomePage
       case 'care-instructions':

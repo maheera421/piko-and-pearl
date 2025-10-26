@@ -66,7 +66,9 @@ export const createCategory = async (req: Request, res: Response) => {
  */
 export const getCategories = async (_req: Request, res: Response) => {
   try {
-    const categories = await (CategoryModel as any).find().sort({ name: 1 }).lean();
+    // Return categories in insertion order (oldest first).
+    // Sorting by createdAt ascending ensures the order matches how categories were posted.
+    const categories = await (CategoryModel as any).find().sort({ createdAt: 1 }).lean();
     return res.json(categories);
   } catch (error: any) {
     return res.status(500).json({ message: error?.message || 'Server error' });

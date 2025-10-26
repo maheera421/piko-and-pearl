@@ -11,7 +11,7 @@ import { getProductReviews, calculateAverageRating, getReviewCount } from "./Pro
 
 interface FeaturedProductsProps {
   onNavigate?: (page: string) => void;
-  products?: any[];
+  products?: any[] | null;
   categories?: any[];
 }
 
@@ -19,22 +19,25 @@ export function FeaturedProducts({ onNavigate, products: propProducts, categorie
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
 
+  const getWishlistId = (p: any) => (p && (p._id || p.id)) ? (p._id || `${p.category}-${p.categoryId || p.id}`) : '';
+
   const toggleWishlist = (product: any) => {
+    const wid = getWishlistId(product);
     const wishlistItem = {
-      id: `${product.category}-${product.categoryId}`,
+      id: wid,
       name: product.name,
       price: product.price,
       originalPrice: product.originalPrice,
       image: product.image,
-      category: product.category.charAt(0).toUpperCase() + product.category.slice(1),
+      category: product.category?.charAt ? (product.category.charAt(0).toUpperCase() + product.category.slice(1)) : product.category,
       rating: product.rating,
       reviews: product.reviews,
       description: product.description
     };
-    
+
     toggleItem(wishlistItem);
-    
-    if (isInWishlist(`${product.category}-${product.categoryId}`)) {
+
+    if (isInWishlist(wid)) {
       toast.success(`${product.name} removed from wishlist!`);
     } else {
       toast.success(`${product.name} added to wishlist!`);
@@ -42,19 +45,21 @@ export function FeaturedProducts({ onNavigate, products: propProducts, categorie
   };
 
   const handleAddToCart = (product: any) => {
+    const imageSrc = product.image1 || product.image || (product.images && product.images[0]) || '';
     addItem({
       id: `${product.category}-${product.categoryId}`,
       name: product.name,
       price: product.price,
-      image: product.image,
-      category: product.category.charAt(0).toUpperCase() + product.category.slice(1)
+      image: imageSrc,
+      category: product.category?.charAt ? (product.category.charAt(0).toUpperCase() + product.category.slice(1)) : product.category
     });
     toast.success(`${product.name} added to cart!`);
   };
 
-  const products = propProducts && propProducts.length ? propProducts : [
-    // fallback to built-in baseProducts when prop not provided (same sample data as before)
-  ];
+  // If product list is not yet provided (null or undefined) we are still loading — don't render fallback sample data
+  if (propProducts == null) return null;
+
+  const products = propProducts && propProducts.length ? propProducts : [];
 
   const getBadgeVariant = (badge: string) => {
     switch (badge) {
@@ -82,7 +87,7 @@ export function FeaturedProducts({ onNavigate, products: propProducts, categorie
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {products.map((product) => (
             <Card 
-              key={product.id} 
+              key={product._id || `${product.category}-${product.categoryId || product.id}`} 
               className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-card overflow-hidden"
             >
               <CardContent className="p-0">
@@ -103,7 +108,7 @@ export function FeaturedProducts({ onNavigate, products: propProducts, categorie
                   >
                     <Heart 
                       className={`h-4 w-4 ${
-                        isInWishlist(`${product.category}-${product.categoryId}`) 
+                        isInWishlist(getWishlistId(product)) 
                           ? 'fill-red-500 text-red-500' 
                           : 'text-gray-600'
                       }`} 

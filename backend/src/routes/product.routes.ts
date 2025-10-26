@@ -6,7 +6,7 @@ import {
   updateProduct,
   deleteProduct,
 } from '../controllers/product.controller';
-import { validateProduct } from '../validators/product.validator';
+import { validateProduct, validateProductUpdate } from '../validators/product.validator';
 
 const router = Router();
 
@@ -19,8 +19,8 @@ router.get('/', getProducts);
 // Route to get a product by ID
 router.get('/:id', getProductById);
 
-// Route to update a product by ID
-router.put('/:id', validateProduct, updateProduct);
+// Route to update a product by ID (partial updates allowed)
+router.put('/:id', validateProductUpdate, updateProduct);
 
 // Route to delete a product by ID
 router.delete('/:id', deleteProduct);

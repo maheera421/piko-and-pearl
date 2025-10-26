@@ -25,6 +25,13 @@ export function ProductDetailPage({ onNavigate, productData, previousPage, categ
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
 
+  const getWishlistId = (p: any, cat?: string) => {
+    if (!p) return '';
+    if (p._id) return p._id;
+    const categorySlug = (cat || category || '').toString().toLowerCase();
+    return `${categorySlug}-${p.id}`;
+  }
+
   if (!productData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -157,11 +164,12 @@ export function ProductDetailPage({ onNavigate, productData, previousPage, categ
     : [];
 
   const handleAddToCart = () => {
+    const imageSrc = (product.image1 || product.image || (product.images && product.images[0])) || '';
     addItem({
       id: `${category.toLowerCase()}-${product.id}`,
       name: product.name,
       price: product.price,
-      image: product.image,
+      image: imageSrc,
       category: category,
       quantity: quantity
     });
@@ -169,8 +177,9 @@ export function ProductDetailPage({ onNavigate, productData, previousPage, categ
   };
 
   const handleWishlistToggle = () => {
+    const wid = getWishlistId(product);
     const wishlistItem = {
-      id: `${category.toLowerCase()}-${product.id}`,
+      id: wid,
       name: product.name,
       price: product.price,
       previousPrice: product.previousPrice || product.originalPrice,
@@ -180,13 +189,9 @@ export function ProductDetailPage({ onNavigate, productData, previousPage, categ
       reviews: product.reviews,
       description: product.description
     };
-    
+
     toggleItem(wishlistItem);
-    toast.success(
-      isInWishlist(`${category.toLowerCase()}-${product.id}`) 
-        ? `${product.name} removed from wishlist` 
-        : `${product.name} added to wishlist!`
-    );
+    toast.success(isInWishlist(wid) ? `${product.name} removed from wishlist` : `${product.name} added to wishlist!`);
   };
 
 
@@ -315,14 +320,12 @@ export function ProductDetailPage({ onNavigate, productData, previousPage, categ
               >
                 <Heart 
                   className={`h-5 w-5 mr-2 ${
-                    isInWishlist(`${category.toLowerCase()}-${product.id}`)
+                    isInWishlist(getWishlistId(product))
                       ? 'fill-red-500 text-red-500'
                       : ''
                   }`}
                 />
-                {isInWishlist(`${category.toLowerCase()}-${product.id}`) 
-                  ? 'Remove from Wishlist' 
-                  : 'Add to Wishlist'}
+                {isInWishlist(getWishlistId(product)) ? 'Remove from Wishlist' : 'Add to Wishlist'}
               </Button>
             </div>
 
@@ -516,8 +519,9 @@ export function ProductDetailPage({ onNavigate, productData, previousPage, categ
             <h2 className="mb-6">You Might Also Like</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct: any) => {
+                const relatedWid = getWishlistId(relatedProduct, category);
                 const relatedWishlistItem = {
-                  id: `${category.toLowerCase()}-${relatedProduct.id}`,
+                  id: relatedWid,
                   name: relatedProduct.name,
                   price: relatedProduct.price,
                   originalPrice: relatedProduct.originalPrice,
@@ -530,11 +534,12 @@ export function ProductDetailPage({ onNavigate, productData, previousPage, categ
 
                 const handleRelatedAddToCart = (e: React.MouseEvent) => {
                   e.stopPropagation();
+                  const relatedImage = relatedProduct.image1 || relatedProduct.image || (relatedProduct.images && relatedProduct.images[0]) || '';
                   addItem({
                     id: `${category.toLowerCase()}-${relatedProduct.id}`,
                     name: relatedProduct.name,
                     price: relatedProduct.price,
-                    image: relatedProduct.image,
+                    image: relatedImage,
                     category: category,
                     quantity: 1
                   });
@@ -544,16 +549,12 @@ export function ProductDetailPage({ onNavigate, productData, previousPage, categ
                 const handleRelatedWishlistToggle = (e: React.MouseEvent) => {
                   e.stopPropagation();
                   toggleItem(relatedWishlistItem);
-                  toast.success(
-                    isInWishlist(`${category.toLowerCase()}-${relatedProduct.id}`) 
-                      ? `${relatedProduct.name} removed from wishlist` 
-                      : `${relatedProduct.name} added to wishlist!`
-                  );
+                  toast.success(isInWishlist(relatedWid) ? `${relatedProduct.name} removed from wishlist` : `${relatedProduct.name} added to wishlist!`);
                 };
 
                 return (
                   <Card 
-                    key={relatedProduct.id} 
+                    key={relatedProduct._id || `${category.toLowerCase()}-${relatedProduct.id}`} 
                     className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white dark:bg-card overflow-hidden"
                   >
                     <CardContent className="p-0">
@@ -572,11 +573,7 @@ export function ProductDetailPage({ onNavigate, productData, previousPage, categ
                           onClick={handleRelatedWishlistToggle}
                         >
                           <Heart 
-                            className={`h-4 w-4 ${
-                              isInWishlist(`${category.toLowerCase()}-${relatedProduct.id}`) 
-                                ? 'fill-red-500 text-red-500' 
-                                : 'text-gray-600 dark:text-gray-300'
-                            }`} 
+                            className={`h-4 w-4 ${isInWishlist(relatedWid) ? 'fill-red-500 text-red-500' : 'text-gray-600 dark:text-gray-300'}`} 
                           />
                         </Button>
                         

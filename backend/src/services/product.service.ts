@@ -9,7 +9,8 @@ export const createProduct = async (productData: any): Promise<any> => {
 };
 
 export const getAllProducts = async (): Promise<any[]> => {
-  return await Product.find();
+  // Return products in insertion order (oldest first) so frontend lists match the order they were created
+  return await Product.find().sort({ createdAt: 1 });
 };
 
 export const getProductById = async (id: string): Promise<any> => {

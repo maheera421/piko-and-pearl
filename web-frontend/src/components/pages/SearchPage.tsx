@@ -29,12 +29,13 @@ export function SearchPage({ onNavigate, initialQuery = "" }: SearchPageProps) {
     );
   };
 
-  const handleAddToCart = (product: typeof allProducts[0]) => {
+  const handleAddToCart = (product: any) => {
+    const imageSrc = product.image1 || product.image || (product.images && product.images[0]) || '';
     addItem({
       id: product.id.toString(),
       name: product.name,
       price: product.price,
-      image: product.image,
+      image: imageSrc,
       category: product.category
     });
     toast.success(`${product.name} added to cart!`);
@@ -179,11 +180,11 @@ export function SearchPage({ onNavigate, initialQuery = "" }: SearchPageProps) {
           <div className="max-w-2xl mx-auto">
             <div className="relative mb-6">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
+                <Input
                 type="text"
                 placeholder="Search for flowers, bags, charms, bandanas, accessories..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e: any) => setSearchQuery(e.target.value)}
                 className="pl-10 h-12 text-lg"
               />
             </div>

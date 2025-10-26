@@ -18,14 +18,18 @@ export const ProductCard = ({ product, onNavigate, hideDescription, categories }
   const { addItem } = useCart();
   const { toggleItem, isInWishlist } = useWishlist();
 
+  const getWishlistId = (p: any) => (p && (p._id || p.id)) ? (p._id || `${p.category}-${p.id}`) : '';
+
   const handleAddToCart = () => {
-    addItem({ id: `${product._id || product.id}`, name: product.name, price: product.price, image: product.image, category: product.category, quantity: 1 });
+    const imageSrc = product.image1 || product.image || (product.images && product.images[0]) || '';
+    addItem({ id: getWishlistId(product), name: product.name, price: product.price, image: imageSrc, category: product.category, quantity: 1 });
     toast.success(`${product.name} added to cart!`);
   };
 
   const handleWishlist = () => {
-    toggleItem({ id: `${product._id || product.id}`, name: product.name, price: product.price, image: product.image, category: product.category });
-    toast.success(isInWishlist(`${product._id || product.id}`) ? `${product.name} removed from wishlist` : `${product.name} added to wishlist!`);
+    const wid = getWishlistId(product);
+    toggleItem({ id: wid, name: product.name, price: product.price, image: product.image, category: product.category });
+    toast.success(isInWishlist(wid) ? `${product.name} removed from wishlist` : `${product.name} added to wishlist!`);
   };
 
   const createSlug = (text: string) =>
@@ -66,7 +70,7 @@ export const ProductCard = ({ product, onNavigate, hideDescription, categories }
           <ImageWithFallback src={product.image1 || product.image || (product.images && product.images[0])} alt={product.name} className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500" onClick={handleView} />
 
           <Button variant="ghost" size="icon" className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white/90 h-9 w-9 rounded-full shadow-sm" onClick={handleWishlist}>
-            <Heart className={`h-4 w-4 ${isInWishlist(`${product._id || product.id}`) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+            <Heart className={`h-4 w-4 ${isInWishlist(getWishlistId(product)) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
           </Button>
 
           <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
