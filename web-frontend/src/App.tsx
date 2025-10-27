@@ -229,7 +229,7 @@ export default function App() {
           // Use product's category name (from product document) for display
           const productCategoryName = match.category || ((categories || []).find((c: any) => createCategorySlug(c.name) === categorySlug)?.name) || categorySlug;
           const productData = { product: match, category: productCategoryName, allProducts: allProductsForCategory };
-          return <ProductDetailPage onNavigate={navigate} productData={productData} previousPage={previousPage} categories={categories} />;
+          return <ProductDetailPage onNavigate={navigate} productData={productData} previousPage={previousPage} categories={categories} allProducts={products} />;
         }
       }
 
@@ -240,7 +240,7 @@ export default function App() {
           const pCatSlug = createCategorySlug((p.category || '').toString().replace(/^handmade-crochet-/, ''));
           return pCatSlug === currentPage || (p.category && p.category.toString().toLowerCase() === (matchedCategory.name || '').toString().toLowerCase());
         });
-        return <CategoryPage onNavigate={navigate} category={matchedCategory} products={catProducts} categories={categories} />;
+        return <CategoryPage onNavigate={navigate} category={matchedCategory} products={catProducts} categories={categories} allProducts={products} />;
       }
 
     switch (currentPage) {

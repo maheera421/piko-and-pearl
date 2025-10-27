@@ -17,9 +17,11 @@ interface ProductDetailPageProps {
   productData: any;
   previousPage?: string;
   categories?: any[];
+  // global products list from App so Header can show suggestions across all products
+  allProducts?: any[];
 }
 
-export function ProductDetailPage({ onNavigate, productData, previousPage, categories }: ProductDetailPageProps) {
+export function ProductDetailPage({ onNavigate, productData, previousPage, categories, allProducts }: ProductDetailPageProps) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const { addItem } = useCart();
@@ -47,7 +49,9 @@ export function ProductDetailPage({ onNavigate, productData, previousPage, categ
     );
   }
 
-  const { product, category, allProducts } = productData;
+  // `productData.allProducts` is the category-scoped list of products. Rename to
+  // avoid clashing with the global `allProducts` prop that may be passed from App.
+  const { product, category, allProducts: categoryAllProducts } = productData;
 
   // Get reviews for this specific product
   const reviews = getProductReviews(category, product.id);
@@ -157,8 +161,8 @@ export function ProductDetailPage({ onNavigate, productData, previousPage, categ
   const ratingDistribution = getRatingDistribution();
 
   // Filter related products (same category, different product)
-  const relatedProducts = allProducts
-    ? allProducts
+  const relatedProducts = categoryAllProducts
+    ? categoryAllProducts
         .filter((p: any) => p.id !== product.id)
         .slice(0, 4)
     : [];
@@ -204,7 +208,7 @@ export function ProductDetailPage({ onNavigate, productData, previousPage, categ
   return (
     <div className="min-h-screen bg-background">
   {/* Header */}
-  <Header onNavigate={onNavigate} categories={categories || []} products={allProducts} />
+  <Header onNavigate={onNavigate} categories={categories || []} products={categoryAllProducts} allProducts={allProducts} />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">

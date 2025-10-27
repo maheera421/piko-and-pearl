@@ -12,9 +12,10 @@ interface HeaderProps {
   onNavigate?: (page: string, query?: string) => void;
   categories?: any[];
   products?: any[] | undefined;
+  allProducts?: any[] | undefined;
 }
 
-export function Header({ onNavigate, categories, products }: HeaderProps) {
+export function Header({ onNavigate, categories, products, allProducts }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestionsVisible, setSuggestionsVisible] = useState(false);
@@ -58,8 +59,9 @@ export function Header({ onNavigate, categories, products }: HeaderProps) {
     onNavigate?.(`${categorySlug}/${productSlug}`);
   };
 
-  // derive suggestions from products prop
-  const suggestions = (products || [])
+  // derive suggestions using the global product list when available, otherwise fall
+  // back to the provided products prop (which may be page-scoped).
+  const suggestions = (allProducts || products || [])
     .filter((p: any) => {
       if (!searchQuery) return false;
       const q = searchQuery.toLowerCase();
@@ -124,7 +126,7 @@ export function Header({ onNavigate, categories, products }: HeaderProps) {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search flowers, bags, charms, bandanas, accessories..."
+                placeholder="Search products here..."
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setSuggestionsVisible(true); }}
                 onFocus={() => setSuggestionsVisible(true)}

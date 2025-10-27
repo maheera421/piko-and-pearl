@@ -84,7 +84,7 @@ export function SearchPage({ onNavigate, initialQuery = "", products }: SearchPa
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                 type="text"
-                placeholder="Serach the products here..."
+                placeholder="Search products here..."
                 value={searchQuery}
                 onChange={(e: any) => setSearchQuery(e.target.value)}
                 className="pl-10 h-12 text-lg"

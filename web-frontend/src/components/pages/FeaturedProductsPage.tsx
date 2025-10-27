@@ -260,65 +260,7 @@ export function FeaturedProductsPage({ onNavigate, products: propProducts, categ
         </div>
       </section>
 
-      {/* Search and Filters */}
-      <section className="py-6 bg-white dark:bg-card border-b">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row items-center justify-between space-y-4 lg:space-y-0 lg:space-x-6">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                type="text"
-                placeholder="Search featured products..."
-                value={searchQuery}
-                onChange={(e: any) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            {/* Filters */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Category:</span>
-              </div>
-              <Select value={filterBy} onValueChange={setFilterBy}>
-                <SelectTrigger className="w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categoryOptions.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <div className="flex items-center space-x-2">
-                <SortAsc className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Sort:</span>
-              </div>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {sortOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <span className="text-sm text-muted-foreground">
-              {filteredAndSortedProducts.length} products found
-            </span>
-          </div>
-        </div>
-      </section>
+      {/* Removed search and filters per request — featured page shows only header and products */}
 
       {/* Products Grid */}
       <section className="py-12">

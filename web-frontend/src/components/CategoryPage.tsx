@@ -8,9 +8,12 @@ interface CategoryPageProps {
   category: any;
   products: any[];
   categories?: any[];
+  // global products list from App (optional). Passed to Header so suggestions can
+  // search across all products.
+  allProducts?: any[];
 }
 
-export function CategoryPage({ onNavigate, category, products, categories }: CategoryPageProps) {
+export function CategoryPage({ onNavigate, category, products, categories, allProducts }: CategoryPageProps) {
   useEffect(() => {
     // set SEO meta tags
     if (category) {
@@ -39,7 +42,7 @@ export function CategoryPage({ onNavigate, category, products, categories }: Cat
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onNavigate={onNavigate} categories={categories} products={products} />
+      <Header onNavigate={onNavigate} categories={categories} products={products} allProducts={allProducts} />
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <header className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-3">{category.name}</h1>
