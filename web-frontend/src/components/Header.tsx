@@ -145,7 +145,7 @@ export function Header({ onNavigate, categories, products, allProducts }: Header
                           onMouseDown={(e) => e.preventDefault()} /* keep focus for click */
                           onClick={() => handleSuggestionClick(p)}
                         >
-                          <img src={p.image1 || p.image || (p.images && p.images[0])} alt={p.name} className="h-10 w-10 rounded-md object-cover" />
+                          <img src={p.image1 || p.image || (p.images && p.images[0])} alt={p.name || 'Product image'} loading="lazy" className="h-10 w-10 rounded-md object-cover" />
                           <div className="flex-1">
                             <div className="font-medium text-foreground truncate">{p.name}</div>
                             <div className="text-sm text-muted-foreground">Rs {p.price}</div>
@@ -193,6 +193,7 @@ export function Header({ onNavigate, categories, products, allProducts }: Header
             <img 
               src={logo}
               alt="Piko and Pearl - handmade crochet shop"
+              loading="lazy"
               className="h-20 w-auto cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => onNavigate?.('home')}
             />

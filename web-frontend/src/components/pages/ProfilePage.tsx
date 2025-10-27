@@ -390,7 +390,8 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                       <div className="relative">
                         <img 
                           src={profilePhoto} 
-                          alt="Profile" 
+                          alt={user?.name ? `${user.name} profile photo` : 'Profile photo'} 
+                          loading="lazy"
                           className="w-24 h-24 rounded-full object-cover border-4 border-primary/20"
                         />
                         <button

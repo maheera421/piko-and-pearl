@@ -180,8 +180,9 @@ export function FeaturedProductsPage({ onNavigate, products: propProducts, categ
     }
   ];
 
-  // If propProducts is null, the data is still loading — render an empty list (avoid fallback static data)
-  const productsToUse = propProducts === null ? [] : (propProducts && propProducts.length ? propProducts : baseFeaturedProducts);
+  // If propProducts is undefined or empty, treat as no dynamic products available
+  // Do NOT fall back to the hardcoded sample data so the live site only shows real products
+  const productsToUse = (propProducts && propProducts.length) ? propProducts : [];
 
   // Add reviews data from centralized ProductData
   const allFeaturedProducts = productsToUse.map(product => {
