@@ -199,7 +199,7 @@ export default function App() {
   // Home page content
   const HomePage = () => (
     <div className="min-h-screen bg-background">
-      <Header onNavigate={navigate} categories={categories} />
+      <Header onNavigate={navigate} categories={categories} products={products} />
       <Hero onNavigate={navigate} />
   <main>
     <ProductCategories onNavigate={navigate} categories={categories} />
@@ -250,7 +250,7 @@ export default function App() {
       case 'contact':
         return <ContactPage onNavigate={navigate} referenceData={navigationData} />;
       case 'search':
-        return <SearchPage onNavigate={navigate} initialQuery={searchQuery} />;
+        return <SearchPage onNavigate={navigate} initialQuery={searchQuery} products={products} />;
       case 'profile':
         return <ProfilePage onNavigate={navigate} />;
       case 'checkout':

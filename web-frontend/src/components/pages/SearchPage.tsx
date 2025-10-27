@@ -1,138 +1,40 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { Card, CardContent } from "../ui/card";
 import { Input } from "../ui/input";
-import { Badge } from "../ui/badge";
-import { ImageWithFallback } from "../figma/ImageWithFallback";
-import { ArrowLeft, Search, Filter, Heart, ShoppingBag, Star } from "lucide-react";
+import { ArrowLeft, Search, Filter } from "lucide-react";
+import ProductCard from "../ProductCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { useCart } from "../CartContext";
-import { toast } from "sonner";
 
 interface SearchPageProps {
   onNavigate: (page: string) => void;
   initialQuery?: string;
+  products?: any[] | undefined;
 }
 
-export function SearchPage({ onNavigate, initialQuery = "" }: SearchPageProps) {
+export function SearchPage({ onNavigate, initialQuery = "", products }: SearchPageProps) {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [wishlist, setWishlist] = useState<number[]>([]);
+  
   const [sortBy, setSortBy] = useState("relevance");
   const [category, setCategory] = useState("all");
-  const { addItem } = useCart();
+  
 
-  const toggleWishlist = (productId: number) => {
-    setWishlist(prev => 
-      prev.includes(productId) 
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-    );
-  };
+  // Prefer dynamic products passed from App; fall back to the legacy static list
+  const legacyProducts: any[] = [];
 
-  const handleAddToCart = (product: any) => {
-    const imageSrc = product.image1 || product.image || (product.images && product.images[0]) || '';
-    addItem({
-      id: product.id.toString(),
-      name: product.name,
-      price: product.price,
-      image: imageSrc,
-      category: product.category
-    });
-    toast.success(`${product.name} added to cart!`);
-  };
-
-  // Mock search results - in a real app, this would come from an API
-  const allProducts = [
-    // Flowers
-    {
-      id: 1,
-      name: "Lavender Rose Bouquet",
-      price: 24.99,
-      originalPrice: 29.99,
-      image: "https://images.unsplash.com/photo-1750009928696-61f5ed8eb8c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZmxvd2VycyUyMGhhbmRtYWRlJTIwcHVycGxlfGVufDF8fHx8MTc1OTI2ODAyMHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      rating: 4.9,
-      reviews: 32,
-      badge: "Bestseller",
-      category: "Flowers",
-      description: "Beautiful handcrafted lavender roses that last forever"
-    },
-    {
-      id: 2,
-      name: "Sunflower Centerpiece",
-      price: 28.99,
-      originalPrice: 35.99,
-      image: "https://images.unsplash.com/photo-1753366556699-4be495e5bdd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwc3VuZmxvd2VyJTIweWVsbG93JTIwaGFuZG1hZGV8ZW58MXx8fHwxNzU5MjY4MDIzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      rating: 4.8,
-      reviews: 28,
-      badge: "Sale",
-      category: "Flowers",
-      description: "Bright sunflower arrangement perfect for any occasion"
-    },
-    {
-      id: 3,
-      name: "Daisy Chain Garland",
-      price: 18.99,
-      originalPrice: null,
-      image: "https://images.unsplash.com/photo-1749301560225-3032826b9e7f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZGFpc3klMjB3aGl0ZSUyMGZsb3dlcnN8ZW58MXx8fHwxNzU5MjY4MDI2fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-      rating: 4.7,
-      reviews: 19,
-      badge: "New",
-      category: "Flowers",
-      description: "Delicate daisy garland for home decoration"
-    },
-    // Bags
-    {
-      id: 4,
-      name: "Boho Tote Bag",
-      price: 34.99,
-      originalPrice: null,
-      image: "https://images.unsplash.com/photo-1693887705535-5fd7c2ddb023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFnJTIwaGFuZG1hZGUlMjBwdXJwbGV8ZW58MXx8fHwxNzU5MTY0MTgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.9,
-      reviews: 18,
-      badge: "Bestseller",
-      category: "Bags",
-      description: "Spacious handwoven tote perfect for everyday use"
-    },
-    // Bag Charms
-    {
-      id: 5,
-      name: "Butterfly Charm",
-      price: 8.99,
-      originalPrice: null,
-      image: "https://images.unsplash.com/photo-1588987617819-c04a0d4b0233?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwY2hhcm0lMjBzbWFsbCUyMGl0ZW1zfGVufDF8fHx8MTc1OTE2NDE5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.8,
-      reviews: 22,
-      badge: "New",
-      category: "Bag Charms",
-      description: "Delicate butterfly design with pearl accents"
-    },
-    // Bandanas
-    {
-      id: 6,
-      name: "Pet Bandana - Purple",
-      price: 16.99,
-      originalPrice: null,
-      image: "https://images.unsplash.com/photo-1552959933-595ad8829c0f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYmFuZGFuYSUyMGhhbmRtYWRlfGVufDF8fHx8MTc1OTE2NDE4NXww&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 5.0,
-      reviews: 15,
-      badge: "Popular",
-      category: "Bandanas",
-      description: "Soft and comfortable bandana for your furry friend"
-    },
-    // Accessories
-    {
-      id: 7,
-      name: "Hair Scrunchie Set",
-      price: 19.99,
-      originalPrice: 24.99,
-      image: "https://images.unsplash.com/photo-1753370474751-c15e55efb1a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwYWNjZXNzb3JpZXMlMjBoYW5kbWFkZXxlbnwxfHx8fDE3NTkxNjQxODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      rating: 4.6,
-      reviews: 28,
-      badge: "Set",
-      category: "Accessories",
-      description: "Beautiful set of three scrunchies in complementary colors"
-    }
-  ];
+  const allProducts = (products && products.length > 0)
+    ? products.map(p => ({
+        id: p._id ?? p.id,
+        name: p.name,
+        price: p.price,
+        originalPrice: p.previousPrice ?? p.originalPrice ?? null,
+        image: p.image1 || p.image || (p.images && p.images[0]) || '',
+        rating: p.rating ?? 0,
+        reviews: p.reviews?.length ?? (p.reviews ?? 0),
+        badge: p.badge ?? p.metaTitle ?? '',
+        category: p.category || '',
+        description: p.description || p.metaDescription || '',
+      }))
+    : legacyProducts;
 
   const filteredResults = allProducts.filter(item => {
     const matchesSearch = !searchQuery || 
@@ -182,7 +84,7 @@ export function SearchPage({ onNavigate, initialQuery = "" }: SearchPageProps) {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                 type="text"
-                placeholder="Search for flowers, bags, charms, bandanas, accessories..."
+                placeholder="Serach the products here..."
                 value={searchQuery}
                 onChange={(e: any) => setSearchQuery(e.target.value)}
                 className="pl-10 h-12 text-lg"
@@ -289,107 +191,7 @@ export function SearchPage({ onNavigate, initialQuery = "" }: SearchPageProps) {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {filteredResults.map((product) => (
-                <Card 
-                  key={product.id} 
-                  className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white overflow-hidden"
-                >
-                  <CardContent className="p-0">
-                    <div className="relative overflow-hidden">
-                      <ImageWithFallback
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
-                        onClick={() => onNavigate(`product-${product.id}`)}
-                      />
-                      
-                      <Badge 
-                        className="absolute top-3 left-3 shadow-sm" 
-                        variant={getBadgeVariant(product.badge)}
-                      >
-                        {product.badge}
-                      </Badge>
-                      
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white/90 h-9 w-9 rounded-full shadow-sm"
-                        onClick={() => toggleWishlist(product.id)}
-                      >
-                        <Heart 
-                          className={`h-4 w-4 ${
-                            wishlist.includes(product.id) 
-                              ? 'fill-red-500 text-red-500' 
-                              : 'text-gray-600'
-                          }`} 
-                        />
-                      </Button>
-                      
-                      <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <Button 
-                          className="w-full bg-primary/90 backdrop-blur-sm hover:bg-primary"
-                          onClick={() => handleAddToCart(product)}
-                        >
-                          <ShoppingBag className="h-4 w-4 mr-2" />
-                          Add to Cart
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="p-6">
-                      <div className="flex items-center mb-2">
-                        <Badge variant="outline" className="text-xs mr-2">
-                          {product.category}
-                        </Badge>
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < Math.floor(product.rating)
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
-                          <span className="text-sm text-muted-foreground ml-1">
-                            ({product.reviews})
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <h3 
-                        className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors cursor-pointer"
-                        onClick={() => onNavigate(`product-${product.id}`)}
-                      >
-                        {product.name}
-                      </h3>
-                      
-                      <p className="text-sm text-muted-foreground mb-4">
-                        {product.description}
-                      </p>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-lg font-semibold text-foreground">
-                            Rs {product.price}
-                          </span>
-                          {product.originalPrice && (
-                            <span className="text-sm text-muted-foreground line-through">
-                              Rs {product.originalPrice}
-                            </span>
-                          )}
-                        </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => onNavigate(`product-${product.id}`)}
-                        >
-                          View Details
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <ProductCard key={product.id} product={product} onNavigate={onNavigate} hideDescription={true} />
               ))}
             </div>
           )}
