@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import slideImage1 from "figma:asset/5dc731be39fd32b546dc973ac7c75beb72ad8fcc.png";
 import slideImage2 from "figma:asset/fbaacfcd6241ed9615bf5e82e637feb7f8f084af.png";
-import slideImage3 from "figma:asset/0ef96d7c27f45470723e63c6acb8f6ced3faa192.png";
+import slideImage3 from "figma:asset/0ef96d7c27f45470723e63c6acb8f6ced3faa192.png"
 
 interface HeroProps {
   onNavigate?: (page: string) => void;
@@ -55,6 +55,7 @@ export function Hero({ onNavigate }: HeroProps) {
     }, 3000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSlide]);
 
   const handleNext = () => {
@@ -85,7 +86,8 @@ export function Hero({ onNavigate }: HeroProps) {
   };
 
   return (
-    <section className="relative w-full overflow-hidden" style={{ height: '90vh' }}>
+  // Reduced height so next section peeks through
+  <section className="relative w-full overflow-hidden mb-12" style={{ height: '75vh' }}>
       {slides.map((slide, index) => (
         <div
           key={slide.id}
@@ -151,6 +153,8 @@ export function Hero({ onNavigate }: HeroProps) {
                   backgroundImage: `url(${slide.image})`,
                   transform: index === currentSlide ? 'scale(1)' : 'scale(1.1)'
                 }}
+                role="img"
+                aria-label={slide.alt}
               />
               {/* Subtle gradient overlay for blend */}
               <div 
@@ -161,6 +165,8 @@ export function Hero({ onNavigate }: HeroProps) {
               ></div>
             </div>
           </div>
+
+          {/* dot indicators were here previously; moved to global container below for reliable visibility */}
         </div>
       ))}
 
@@ -216,3 +222,4 @@ export function Hero({ onNavigate }: HeroProps) {
     </section>
   );
 }
+

@@ -1,4 +1,4 @@
-import { Button } from "./ui/button";
+import { Button } from "./ui/button"; 
 import { Card, CardContent } from "./ui/card";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { ArrowRight } from "lucide-react";
@@ -9,15 +9,13 @@ interface ProductCategoriesProps {
 }
 
 export function ProductCategories({ onNavigate, categories }: ProductCategoriesProps) {
-  // If categories are still loading (null or undefined), don't render the fallback static content —
-  // return null to avoid a flash of hardcoded categories on initial page load.
   if (categories == null) return null;
 
   const fallback = [
     {
       name: "Flowers",
       description: "Beautiful blooms that last forever",
-      image: "https://images.unsplash.com/photo-1575175090204-0a470102fc40?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZmxvd2VycyUyMGhhbmRtYWRlJTIwY29sb3JmdWx8ZW58MXx8fHwxNzU5MzE5NzUzfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+      image: "https://images.unsplash.com/photo-1575175090204-0a470102fc40?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9jaGV0JTIwZmxvd2VycyUyMGhhbmRtYWRlJTIwY29sb3JmdWx8ZW58MXx8fHwxNzU5MzE5NzUzfDA&ixlib=rb-4.1.0&q=80&w=1080",
       page: "flowers",
       items: "50+ designs"
     },
@@ -51,28 +49,28 @@ export function ProductCategories({ onNavigate, categories }: ProductCategoriesP
     }
   ];
 
-  // Build image URLs: if image is already absolute (http/data) use as-is, otherwise prefix with the server root
   const API_BASE = (import.meta.env.VITE_API_BASE as string) || 'http://localhost:5000/api';
   const SERVER_ROOT = API_BASE.replace(/\/api\/?$/, '');
 
   const buildImageUrl = (img?: string) => {
     if (!img) return '';
     const trimmed = img.toString();
-    // absolute URLs or data URIs
     if (/^(https?:)?\/\//i.test(trimmed) || trimmed.startsWith('data:')) return trimmed;
-    // otherwise prefix with server root
     return `${SERVER_ROOT}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`;
   };
 
-  const useCategories = categories && categories.length ? categories.map(c => ({
-    name: c.name,
-    description: c.content || c.metaDescription || '',
-    image: buildImageUrl(c.image),
-    page: c.slug || c.name.toLowerCase()
-  })) : fallback;
+  const useCategories = categories && categories.length
+    ? categories.map(c => ({
+        name: c.name,
+        description: c.content || c.metaDescription || '',
+        image: buildImageUrl(c.image),
+        page: c.slug || c.name.toLowerCase()
+      }))
+    : fallback;
 
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-b from-background to-purple-50/30 dark:to-black">
+    <section className="pt-12 md:pt-16 pb-16 md:pb-24 bg-gradient-to-b from-background to-purple-50/30 dark:to-black">
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
@@ -86,9 +84,9 @@ export function ProductCategories({ onNavigate, categories }: ProductCategoriesP
 
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {useCategories.map((category, index) => (
-            <Card 
-              key={category.name} 
+          {useCategories.map((category) => (
+            <Card
+              key={category.name}
               className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-card backdrop-blur-sm overflow-hidden"
             >
               <CardContent className="p-0">
@@ -100,11 +98,17 @@ export function ProductCategories({ onNavigate, categories }: ProductCategoriesP
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                 </div>
-                
+
                 <div className="p-6">
                   <h3 className="text-xl font-semibold text-foreground mb-2">{category.name}</h3>
-                  <p className="text-muted-foreground mb-4 line-clamp-1 overflow-hidden text-ellipsis whitespace-nowrap">{category.description}</p>
-                  <Button variant="ghost" className="group/btn p-0 h-auto text-primary hover:text-primary-foreground hover:bg-primary" onClick={() => onNavigate?.(category.page || category.name.toLowerCase())}>
+                  <p className="text-muted-foreground mb-4 line-clamp-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                    {category.description}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    className="group/btn p-0 h-auto text-primary hover:text-primary-foreground hover:bg-primary"
+                    onClick={() => onNavigate?.(category.page || category.name.toLowerCase())}
+                  >
                     Shop {category.name}
                     <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                   </Button>
