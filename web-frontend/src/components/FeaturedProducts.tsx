@@ -178,7 +178,7 @@ export function FeaturedProducts({ onNavigate, products: propProducts, categorie
                         });
                         if (match) categorySlug = match.slug || createCategorySlug(match.name || '');
                       }
-                      const path = `${categorySlug}/${createSlug(product.name || '')}`;
+                      const path = `${categorySlug}/${(product.slug && product.slug.toString()) || createSlug(product.name || '')}`;
                       onNavigate?.(path);
                     }}>
                       View Details

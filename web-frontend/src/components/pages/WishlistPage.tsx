@@ -37,7 +37,7 @@ export function WishlistPage({ onNavigate, products, categories }: WishlistPageP
     // try slug match on name
     const createSlug = (text: string) => text?.toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     const itemSlug = createSlug(last) || createSlug(item.name || '');
-    found = products.find(p => createSlug(p.name || '') === itemSlug || createSlug(p.name || '') === createSlug(item.name || ''));
+  found = products.find(p => (p.slug && p.slug === itemSlug) || createSlug(p.name || '') === itemSlug || createSlug(p.name || '') === createSlug(item.name || ''));
     return found || null;
   };
   console.log('WishlistPage - wishlistItems:', wishlistItems);

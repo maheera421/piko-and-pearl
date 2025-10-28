@@ -59,7 +59,7 @@ export const ProductCard = ({ product, onNavigate, hideDescription, categories }
 
   const handleView = () => {
     const categorySlug = resolveCategorySlug(product, categories);
-    const productSlug = createSlug(product.name || '');
+    const productSlug = (product.slug && product.slug.toString()) || createSlug(product.name || '');
     onNavigate?.(`${categorySlug}/${productSlug}`);
   };
 

@@ -53,8 +53,7 @@ export function Header({ onNavigate, categories, products, allProducts }: Header
   const handleSuggestionClick = (product: any) => {
     // build slug path: category-slug/product-slug
     const categorySlug = createCategorySlug((product.category || '').toString().replace(/^handmade-crochet-/, ''));
-    const productSlug = createSlug(product.name || product.title || '')
-      || (product.slug || '').toString();
+    const productSlug = (product.slug && product.slug.toString()) || createSlug(product.name || product.title || '');
     setSuggestionsVisible(false);
     onNavigate?.(`${categorySlug}/${productSlug}`);
   };

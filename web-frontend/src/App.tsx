@@ -39,9 +39,10 @@ const createCategorySlug = (categoryName: string): string => {
   return createSlug(`handmade-crochet-${categoryName}`);
 };
 
-// Helper function to find product by slug
+// Helper function to find product by slug. Prefer the DB-provided `slug` field
+// but fall back to a generated slug from the product name when absent.
 const findProductBySlug = (category: string, slug: string, products: any[]) => {
-  return products.find(p => createSlug(p.name) === slug);
+  return products.find(p => (p.slug && p.slug === slug) || createSlug(p.name) === slug);
 };
 
 export default function App() {
@@ -146,8 +147,8 @@ export default function App() {
     // Product detail page (categorySlug/productSlug)
     if (currentPage.includes('/')) {
       const [categorySlug, productSlug] = currentPage.split('/');
-  const match = (products || []).find((p: any) => {
-        const pSlug = createSlug(p.name || '');
+      const match = (products || []).find((p: any) => {
+        const pSlug = (p.slug && p.slug.toString()) || createSlug(p.name || '');
         const pCategorySlug = createCategorySlug((p.category || '').toString().replace(/^handmade-crochet-/, ''));
         return pSlug === productSlug || (pCategorySlug === categorySlug && pSlug === productSlug);
       });
@@ -219,7 +220,7 @@ export default function App() {
         // Try to find a product where the slug of the name matches productSlug
         // and its category slug (generated from product.category) matches categorySlug.
       const match = (products || []).find((p: any) => {
-          const pSlug = createSlug(p.name || '');
+          const pSlug = (p.slug && p.slug.toString()) || createSlug(p.name || '');
           const pCategorySlug = createCategorySlug((p.category || '').toString().replace(/^handmade-crochet-/, ''));
           return pSlug === productSlug || (pCategorySlug === categorySlug && pSlug === productSlug);
         });

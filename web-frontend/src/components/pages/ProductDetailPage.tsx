@@ -146,7 +146,9 @@ export function ProductDetailPage({ onNavigate, productData, previousPage, categ
       "Coaster Set": "Practical set of handmade coasters protecting surfaces while adding handcrafted charm to your home. Absorbent design prevents water rings while the durable construction withstands daily use. A thoughtful housewarming gift or home essential."
     };
     
-    return descriptions[product.name] || product.description + ". Handcrafted with premium materials and attention to detail. Each piece is unique and made with love in Pakistan.";
+    // Prefer editorial enhanced descriptions for certain products; otherwise use
+    // the raw product.description from the database exactly as provided.
+    return descriptions[product.name] || (product.description || '');
   };
 
   // Calculate rating distribution

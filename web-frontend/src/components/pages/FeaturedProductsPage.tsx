@@ -292,7 +292,7 @@ export function FeaturedProductsPage({ onNavigate, products: propProducts, categ
                               });
                               if (match) categorySlug = match.slug || createCategorySlug(match.name || '');
                             }
-                            onNavigate?.(`${categorySlug}/${createSlug(product.name || '')}`);
+                            onNavigate?.(`${categorySlug}/${(product.slug && product.slug.toString()) || createSlug(product.name || '')}`);
                           }}
                         />
                     
@@ -357,7 +357,7 @@ export function FeaturedProductsPage({ onNavigate, products: propProducts, categ
                               });
                               if (match) categorySlug = match.slug || createCategorySlug(match.name || '');
                             }
-                            onNavigate?.(`${categorySlug}/${createSlug(product.name || '')}`);
+                            onNavigate?.(`${categorySlug}/${(product.slug && product.slug.toString()) || createSlug(product.name || '')}`);
                           }}
                         >
                       {product.name}
@@ -391,7 +391,7 @@ export function FeaturedProductsPage({ onNavigate, products: propProducts, categ
                           });
                           if (match) categorySlug = match.slug || createCategorySlug(match.name || '');
                         }
-                        onNavigate?.(`${categorySlug}/${createSlug(product.name || '')}`);
+                        onNavigate?.(`${categorySlug}/${(product.slug && product.slug.toString()) || createSlug(product.name || '')}`);
                       }}
                     >
                       View Details
