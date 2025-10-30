@@ -64,7 +64,7 @@ export function Footer({ onNavigate, categories }: FooterProps) {
           {/* Brand Section */}
           <div className="lg:col-span-1">
             <h3 className="text-2xl font-bold text-primary mb-4">
-              Piko & Pearl
+              <a href="/" onClick={(e: React.MouseEvent<HTMLAnchorElement>) => { if (onNavigate) { e.preventDefault(); onNavigate('home'); } }} className="hover:underline focus:outline-none">Piko &amp; Pearl</a>
             </h3>
             <p className="text-muted-foreground mb-6 leading-relaxed">
               Handcrafted crochet items made with love and care. Each piece tells a story 
@@ -73,41 +73,43 @@ export function Footer({ onNavigate, categories }: FooterProps) {
             
             {/* Social Links */}
             <div className="flex space-x-4 mb-6">
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full"
-                onClick={() => window.open('https://www.instagram.com/pikoandpearl?igsh=dmlzZzhtaHU5NGM0', '_blank')}
+              <a
+                href="https://www.instagram.com/pikoandpearl?igsh=dmlzZzhtaHU5NGM0"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/90 shadow-sm hover:scale-105 transition-transform"
+                aria-label="Instagram"
               >
-                <Instagram className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full"
-                onClick={() => window.open('https://www.facebook.com/share/16gXixBNPH/', '_blank')}
+                <Instagram className="h-4 w-4 text-pink-600" />
+              </a>
+              <a
+                href="https://www.facebook.com/share/16gXixBNPH/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/90 shadow-sm hover:scale-105 transition-transform"
+                aria-label="Facebook"
               >
-                <Facebook className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="rounded-full"
-                onClick={() => onNavigate?.('contact')}
+                <Facebook className="h-4 w-4 text-blue-600" />
+              </a>
+              <a
+                href="/contact"
+                onClick={(e: React.MouseEvent<HTMLAnchorElement>) => { if (onNavigate) { e.preventDefault(); onNavigate('contact'); } }}
+                className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/90 shadow-sm hover:scale-105 transition-transform"
+                aria-label="Contact"
               >
-                <Mail className="h-4 w-4" />
-              </Button>
+                <Mail className="h-4 w-4 text-rose-600" />
+              </a>
             </div>
 
             {/* Contact Info */}
             <div className="space-y-3 text-sm text-muted-foreground">
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4" />
-                <span>info@pikoandpearl.com</span>
+                <a href="mailto:info@pikoandpearl.com" className="hover:text-primary">info@pikoandpearl.com</a>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="h-4 w-4" />
-                <span>+92 300 1234567</span>
+                <a href="tel:+923001234567" className="hover:text-primary">+92 300 1234567</a>
               </div>
               <div className="flex items-center space-x-3">
                 <MapPin className="h-4 w-4" />
@@ -122,12 +124,13 @@ export function Footer({ onNavigate, categories }: FooterProps) {
             <ul className="space-y-3">
               {buildShopLinksFromCategories(categories).map((link) => (
                 <li key={link.name}>
-                  <button 
-                    onClick={() => onNavigate?.(link.page)}
-                    className="text-muted-foreground hover:text-primary transition-colors text-left"
+                  <a
+                    href={`/${link.page}`}
+                    onClick={(e: React.MouseEvent<HTMLAnchorElement>) => { if (onNavigate) { e.preventDefault(); onNavigate(link.page); } }}
+                    className="text-muted-foreground hover:text-primary transition-colors block"
                   >
                     {link.name}
-                  </button>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -139,12 +142,13 @@ export function Footer({ onNavigate, categories }: FooterProps) {
             <ul className="space-y-3">
               {footerLinks.support.map((link) => (
                 <li key={link.name}>
-                  <button 
-                    onClick={() => onNavigate?.(link.page)}
-                    className="text-muted-foreground hover:text-primary transition-colors text-left"
+                  <a
+                    href={`/${link.page}`}
+                    onClick={(e: React.MouseEvent<HTMLAnchorElement>) => { if (onNavigate) { e.preventDefault(); onNavigate(link.page); } }}
+                    className="text-muted-foreground hover:text-primary transition-colors block"
                   >
                     {link.name}
-                  </button>
+                  </a>
                 </li>
               ))}
             </ul>

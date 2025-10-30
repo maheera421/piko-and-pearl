@@ -90,16 +90,14 @@ export function Header({ onNavigate, categories, products, allProducts }: Header
                 </VisuallyHidden>
                 <div className="flex flex-col space-y-4 mt-6 pl-4">
                   {navigation.map((item) => (
-                    <button
+                    <a
                       key={item.name}
-                      onClick={() => {
-                        onNavigate?.(item.page);
-                        setIsOpen(false);
-                      }}
+                      href={`/${item.page}`}
+                      onClick={(e: React.MouseEvent<HTMLAnchorElement>) => { if (onNavigate) { e.preventDefault(); onNavigate(item.page); } setIsOpen(false); }}
                       className="text-lg text-foreground hover:text-primary transition-colors py-2 text-left"
                     >
                       {item.name}
-                    </button>
+                    </a>
                   ))}
                 </div>
               </SheetContent>
@@ -108,13 +106,14 @@ export function Header({ onNavigate, categories, products, allProducts }: Header
             {/* Desktop Navigation */}
             <nav className="hidden xl:flex items-center space-x-6">
               {navigation.map((item) => (
-                <button
+                <a
                   key={item.name}
-                  onClick={() => onNavigate?.(item.page)}
-                  className="text-foreground hover:text-primary transition-colors whitespace-nowrap"
+                  href={`/${item.page}`}
+                  onClick={(e: React.MouseEvent<HTMLAnchorElement>) => { if (onNavigate) { e.preventDefault(); onNavigate(item.page); } }}
+                  className="text-foreground hover:text-primary transition-colors whitespace-nowrap font-medium"
                 >
                   {item.name}
-                </button>
+                </a>
               ))}
             </nav>
           </div>
@@ -127,7 +126,7 @@ export function Header({ onNavigate, categories, products, allProducts }: Header
                 type="text"
                 placeholder="Search products here..."
                 value={searchQuery}
-                onChange={(e) => { setSearchQuery(e.target.value); setSuggestionsVisible(true); }}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setSearchQuery(e.target.value); setSuggestionsVisible(true); }}
                 onFocus={() => setSuggestionsVisible(true)}
                 onBlur={() => setTimeout(() => setSuggestionsVisible(false), 150)}
                 className="pl-10 w-full bg-input-background border-border"
@@ -139,17 +138,18 @@ export function Header({ onNavigate, categories, products, allProducts }: Header
                   <ul className="divide-y">
                     {suggestions.map((p: any) => (
                       <li key={p._id || p.id}>
-                        <button
-                          className="w-full text-left flex items-center gap-3 p-3 hover:bg-muted/50"
-                          onMouseDown={(e) => e.preventDefault()} /* keep focus for click */
-                          onClick={() => handleSuggestionClick(p)}
-                        >
-                          <img src={p.image1 || p.image || (p.images && p.images[0])} alt={p.name || 'Product image'} loading="lazy" className="h-10 w-10 rounded-md object-cover" />
-                          <div className="flex-1">
-                            <div className="font-medium text-foreground truncate">{p.name}</div>
-                            <div className="text-sm text-muted-foreground">Rs {p.price}</div>
-                          </div>
-                        </button>
+                            <a
+                              className="w-full text-left flex items-center gap-3 p-3 hover:bg-muted/50"
+                              onMouseDown={(e: React.MouseEvent) => e.preventDefault()} /* keep focus for click */
+                              href={`/${createCategorySlug((p.category || '').toString().replace(/^handmade-crochet-/, ''))}/${(p.slug && p.slug.toString()) || createSlug(p.name || p.title || '')}`}
+                              onClick={(e: React.MouseEvent<HTMLAnchorElement>) => { e.preventDefault(); handleSuggestionClick(p); }}
+                            >
+                              <img src={p.image1 || p.image || (p.images && p.images[0])} alt={p.name || 'Product image'} loading="lazy" className="h-10 w-10 rounded-md object-cover" />
+                              <div className="flex-1">
+                                <div className="font-medium text-foreground truncate">{p.name}</div>
+                                <div className="text-sm text-muted-foreground">Rs {p.price}</div>
+                              </div>
+                            </a>
                       </li>
                     ))}
                   </ul>
@@ -160,42 +160,34 @@ export function Header({ onNavigate, categories, products, allProducts }: Header
 
           {/* Right Side - Icons and Logo */}
           <div className="flex items-center space-x-4 shrink-0">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="hidden sm:flex relative"
-              onClick={() => onNavigate?.('wishlist')}
-            >
-              <Heart className="h-5 w-5" />
+            <Button asChild variant="ghost" size="icon" className="hidden sm:flex relative">
+              <a href="/wishlist" onClick={(e: React.MouseEvent<HTMLAnchorElement>) => { if (onNavigate) { e.preventDefault(); onNavigate('wishlist'); } }} aria-label="Wishlist">
+                <Heart className="h-5 w-5" />
+              </a>
             </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="hidden sm:flex"
-              onClick={() => onNavigate?.('profile')}
-            >
-              <User className="h-5 w-5" />
+            <Button asChild variant="ghost" size="icon" className="hidden sm:flex">
+              <a href="/profile" onClick={(e: React.MouseEvent<HTMLAnchorElement>) => { if (onNavigate) { e.preventDefault(); onNavigate('profile'); } }} aria-label="Profile">
+                <User className="h-5 w-5" />
+              </a>
             </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="relative"
-              onClick={() => onNavigate?.('cart')}
-            >
-              <ShoppingBag className="h-5 w-5" />
-              <Badge className="absolute -right-2 -top-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                {getTotalItems()}
-              </Badge>
+            <Button asChild variant="ghost" size="icon" className="relative">
+              <a href="/cart" onClick={(e: React.MouseEvent<HTMLAnchorElement>) => { if (onNavigate) { e.preventDefault(); onNavigate('cart'); } }} aria-label="Cart" className="relative">
+                <ShoppingBag className="h-5 w-5" />
+                <Badge className="absolute -right-2 -top-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
+                  {getTotalItems()}
+                </Badge>
+              </a>
             </Button>
             
             {/* Logo - Right Aligned */}
-            <img 
-              src={logo}
-              alt="Piko and Pearl - handmade crochet shop"
-              loading="lazy"
-              className="h-20 w-auto cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => onNavigate?.('home')}
-            />
+            <a href="/" onClick={(e: React.MouseEvent<HTMLAnchorElement>) => { if (onNavigate) { e.preventDefault(); onNavigate('home'); } }} aria-label="Home">
+              <img 
+                src={logo}
+                alt="Piko and Pearl - handmade crochet shop"
+                loading="lazy"
+                className="h-20 w-auto cursor-pointer hover:opacity-80 transition-opacity"
+              />
+            </a>
           </div>
         </div>
       </div>

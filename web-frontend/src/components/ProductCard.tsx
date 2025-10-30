@@ -63,11 +63,18 @@ export const ProductCard = ({ product, onNavigate, hideDescription, categories }
     onNavigate?.(`${categorySlug}/${productSlug}`);
   };
 
+  // href for SEO / graceful navigation
+  const categorySlug = resolveCategorySlug(product, categories);
+  const productSlug = (product.slug && product.slug.toString()) || createSlug(product.name || '');
+  const productHref = `/${categorySlug}/${productSlug}`;
+
   return (
     <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-card overflow-hidden">
       <CardContent className="p-0">
         <div className="relative overflow-hidden">
-          <ImageWithFallback src={product.image1 || product.image || (product.images && product.images[0])} alt={product.name} className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500" onClick={handleView} />
+          <a href={productHref} onClick={(e: React.MouseEvent<HTMLAnchorElement>) => { if (onNavigate) { e.preventDefault(); onNavigate(`${categorySlug}/${productSlug}`); } }}>
+            <ImageWithFallback src={product.image1 || product.image || (product.images && product.images[0])} alt={product.name} className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500" />
+          </a>
 
           <Button variant="ghost" size="icon" className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm hover:bg-white/90 h-9 w-9 rounded-full shadow-sm" onClick={handleWishlist}>
             <Heart className={`h-4 w-4 ${isInWishlist(getWishlistId(product)) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
@@ -91,7 +98,9 @@ export const ProductCard = ({ product, onNavigate, hideDescription, categories }
             </div>
           </div>
 
-          <h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors cursor-pointer" onClick={handleView}>{product.name}</h3>
+          <h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+            <a href={productHref} onClick={(e: React.MouseEvent<HTMLAnchorElement>) => { if (onNavigate) { e.preventDefault(); onNavigate(`${categorySlug}/${productSlug}`); } }} className="cursor-pointer hover:underline">{product.name}</a>
+          </h3>
 
           {!hideDescription && (
             <p className="text-sm text-muted-foreground mb-3">{product.description}</p>
@@ -104,7 +113,11 @@ export const ProductCard = ({ product, onNavigate, hideDescription, categories }
                 <span className="text-sm text-muted-foreground line-through">Rs {product.previousPrice || product.originalPrice}</span>
               )}
             </div>
-            <Button variant="outline" size="sm" onClick={handleView}>View Details</Button>
+            <a href={productHref} onClick={(e: React.MouseEvent<HTMLAnchorElement>) => { if (onNavigate) { e.preventDefault(); onNavigate(`${categorySlug}/${productSlug}`); } }} className="inline-block">
+              <Button asChild variant="outline" size="sm">
+                <span>View Details</span>
+              </Button>
+            </a>
           </div>
         </div>
       </CardContent>

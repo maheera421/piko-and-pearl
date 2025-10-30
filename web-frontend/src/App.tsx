@@ -46,7 +46,14 @@ const findProductBySlug = (category: string, slug: string, products: any[]) => {
 };
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState('home');
+  const [currentPage, setCurrentPage] = useState(() => {
+    try {
+      const initialPath = window.location.pathname.replace(/^\//, '');
+      return initialPath && initialPath !== '/' ? initialPath : 'home';
+    } catch (e) {
+      return 'home';
+    }
+  });
   const [previousPage, setPreviousPage] = useState('home');
   const [searchQuery, setSearchQuery] = useState('');
   const [navigationData, setNavigationData] = useState<any>(null);
@@ -211,8 +218,31 @@ export default function App() {
     </div>
   );
 
+  // Loading placeholder to show while we resolve routes that require fetched data
+  const LoadingPage = ({ message }: { message?: string }) => (
+    <div className="min-h-screen bg-background">
+      <Header onNavigate={navigate} categories={categories} products={products} />
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-6" />
+          <p className="text-lg text-muted-foreground">{message || 'Loading…'}</p>
+        </div>
+      </main>
+      <Footer onNavigate={navigate} categories={categories} />
+    </div>
+  );
+
   // Render different pages based on current page
   const renderPage = () => {
+  // If we're navigating to routes that depend on server data (products/categories)
+  // but that data hasn't arrived yet, show a loading placeholder instead of
+  // falling back to the HomePage. This prevents the HomePage from briefly
+  // rendering as a fallback during route resolution.
+  const needsProductData = currentPage.includes('/');
+  const needsCategoryData = !currentPage.includes('/') && !['cart','contact','search','profile','checkout','wishlist','featured','care-instructions','faq','home',''].includes(currentPage);
+  if ((needsProductData && products === undefined) || (needsCategoryData && categories === undefined)) {
+    return <LoadingPage message="Resolving route…" />;
+  }
   // Handle product detail pages with slug-style routing: 'category-slug/product-slug'
       if (currentPage.includes('/')) {
         const [categorySlug, productSlug] = currentPage.split('/');
