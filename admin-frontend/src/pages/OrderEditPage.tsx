@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -7,41 +7,129 @@ import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useApp } from '../contexts/AppContext';
+import { Order } from '../types/Order';
 
 const statusOptions = [
-  { value: 'pending', label: 'Pending' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'processing', label: 'Processing' },
-  { value: 'shipped', label: 'Shipped' },
-  { value: 'delivered', label: 'Delivered' },
-  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'Pending', label: 'Pending' },
+  { value: 'Processing', label: 'Processing' },
+  { value: 'Delivered', label: 'Delivered' },
+  { value: 'Cancelled', label: 'Cancelled' },
 ];
 
 const paymentStatusOptions = [
-  { value: 'pending', label: 'Pending' },
-  { value: 'paid', label: 'Paid' },
-  { value: 'failed', label: 'Failed' },
+  { value: 'Pending', label: 'Pending' },
+  { value: 'Paid', label: 'Paid' },
 ];
 
 export function OrderEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { orders, updateOrder } = useApp();
-
-  // Check if we came from the view page by checking location state
-  const locationState = window.history.state?.usr as { fromViewPage?: boolean } | undefined;
-  const fromViewPage = locationState?.fromViewPage || false;
-
-  const order = orders.find(o => o.id === id);
-
+  const [order, setOrder] = useState<Order | null>(null);
   const [formData, setFormData] = useState({
-    status: order?.status || 'pending',
-    paymentStatus: order?.paymentStatus || 'pending',
-    courierName: order?.courierName || '',
-    trackingNumber: order?.trackingNumber || '',
+    status: 'Pending',
+    paymentStatus: 'Pending',
+    courierName: '',
+    trackingNumber: '',
   });
   const [isSaving, setIsSaving] = useState(false);
+  const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api';
+
+  const getBases = () => {
+    const envRaw = (import.meta.env.VITE_API_BASE || '').replace(/\/+$/, '');
+    const env = envRaw ? (/\/api$/.test(envRaw) ? envRaw : `${envRaw}/api`) : '';
+    const origin = `${window.location.origin}/api`;
+    const list = [
+      'http://localhost:5000/api',
+      'http://127.0.0.1:5000/api',
+      origin,
+      env,
+    ].filter(Boolean);
+    const seen = new Set<string>();
+    return list.filter(b => !seen.has(b) && (seen.add(b), true));
+  };
+
+  const fetchFromBases = async (path: string, init?: RequestInit) => {
+    for (const base of getBases()) {
+      try {
+        const url = `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+        const res = await fetch(url, { headers: { Accept: 'application/json' }, cache: 'no-store', ...(init || {}) });
+        const ct = res.headers.get('content-type') || '';
+        if (!res.ok || !ct.includes('application/json')) continue;
+        const json = await res.json();
+        return json;
+      } catch {}
+    }
+    return null;
+  };
+
+  const sendToBases = async (path: string, body: any) => {
+    for (const base of getBases()) {
+      try {
+        const url = `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+        const res = await fetch(url, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (res.ok) return true;
+      } catch {}
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const json = await fetchFromBases(`orders/${id}?ts=${Date.now()}`);
+        if (json) {
+          const data = json.data ?? json.order ?? json;
+          if (!data) return;
+          data.items = Array.isArray(data.items)
+            ? data.items.map((it: any) => ({
+                ...it,
+                subtotal: typeof it.subtotal === 'number' ? it.subtotal : (it.price || 0) * (it.quantity || 0),
+              }))
+            : [];
+          setOrder(data);
+          setFormData(prev => ({
+            ...prev,
+            status: data.orderStatus,
+            paymentStatus: data.paymentStatus,
+          }));
+        }
+      } catch {}
+    })();
+  }, [id]);
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const ok = await sendToBases(`orders/${order!._id}`, {
+        orderStatus: formData.status,
+        paymentStatus: formData.paymentStatus,
+      });
+      if (ok) {
+        toast.success('Order updated successfully!');
+      } else {
+        toast.error('Failed to update order');
+      }
+    } catch {
+      toast.error('Network error');
+    } finally {
+      setIsSaving(false);
+      navigate('/orders');
+    }
+  };
 
   if (!order) {
     return (
@@ -56,44 +144,6 @@ export function OrderEditPage() {
     );
   }
 
-  const handleSave = async () => {
-    // Validation for processing status
-    if (formData.status === 'processing' || formData.status === 'shipped' || formData.status === 'delivered') {
-      if (!formData.courierName || !formData.trackingNumber) {
-        toast.error('Courier name and tracking number are required for processing, shipped, or delivered status');
-        return;
-      }
-    }
-
-    setIsSaving(true);
-
-    // Simulate saving delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Update the order in context
-    updateOrder(id!, {
-      status: formData.status as any,
-      paymentStatus: formData.paymentStatus as any,
-      courierName: formData.courierName,
-      trackingNumber: formData.trackingNumber,
-    });
-
-    toast.success('Order updated successfully!');
-    
-    setIsSaving(false);
-    navigate('/orders');
-  };
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -105,7 +155,7 @@ export function OrderEditPage() {
           <div>
             <h1>Edit Order {order.orderNumber}</h1>
             <p className="text-muted-foreground mt-1">
-              {formatDate(order.date)}
+              {formatDate(new Date(order.createdAt))}
             </p>
           </div>
         </div>
@@ -122,11 +172,13 @@ export function OrderEditPage() {
                 <Label htmlFor="status">
                   Order Status <span className="text-destructive">*</span>
                 </Label>
+                {/* Hidden input to provide name/id for autofill */}
+                <input type="hidden" id="status" name="status" value={formData.status} />
                 <Select
                   value={formData.status}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
                 >
-                  <SelectTrigger className="mt-1.5">
+                  <SelectTrigger className="mt-1.5" aria-label="Order Status">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -144,11 +196,13 @@ export function OrderEditPage() {
                 <Label htmlFor="paymentStatus">
                   Payment Status <span className="text-destructive">*</span>
                 </Label>
+                {/* Hidden input to provide name/id for autofill */}
+                <input type="hidden" id="paymentStatus" name="paymentStatus" value={formData.paymentStatus} />
                 <Select
                   value={formData.paymentStatus}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, paymentStatus: value }))}
                 >
-                  <SelectTrigger className="mt-1.5">
+                  <SelectTrigger className="mt-1.5" aria-label="Payment Status">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -161,52 +215,12 @@ export function OrderEditPage() {
                 </Select>
               </div>
 
-              {/* Courier and Tracking Info (shown when status is processing, shipped, or delivered) */}
-              {(formData.status === 'processing' || formData.status === 'shipped' || formData.status === 'delivered') && (
-                <>
-                  <div className="pt-4 border-t border-border">
-                    <h4 className="mb-4">Shipping Information</h4>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="courierName">
-                          Courier Name <span className="text-destructive">*</span>
-                        </Label>
-                        <Input
-                          id="courierName"
-                          placeholder="e.g., TCS, Leopards, M&P"
-                          value={formData.courierName}
-                          onChange={(e) => setFormData(prev => ({ ...prev, courierName: e.target.value }))}
-                          className="mt-1.5"
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="trackingNumber">
-                          Tracking Number <span className="text-destructive">*</span>
-                        </Label>
-                        <Input
-                          id="trackingNumber"
-                          placeholder="Enter tracking number"
-                          value={formData.trackingNumber}
-                          onChange={(e) => setFormData(prev => ({ ...prev, trackingNumber: e.target.value }))}
-                          className="mt-1.5"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Customer will receive this tracking number
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-
               {/* Action Buttons */}
               <div className="flex items-center gap-3 pt-4">
                 <Button
                   variant="outline"
                   className="flex-1"
-                  onClick={() => navigate(`/orders/view/${id}`)}
+                  onClick={() => navigate(`/orders/view/${order._id}`)}
                   disabled={isSaving}
                 >
                   Cancel
@@ -237,15 +251,15 @@ export function OrderEditPage() {
             <div className="space-y-3">
               <div>
                 <p className="text-sm text-muted-foreground">Customer</p>
-                <p>{order.customerName}</p>
+                <p>{order.customerDetails.fullName}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Email</p>
-                <p className="text-sm">{order.email}</p>
+                <p className="text-sm">{order.customerDetails.email}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Phone</p>
-                <p className="text-sm">{order.phone}</p>
+                <p className="text-sm">{order.customerDetails.phoneNumber}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Amount</p>
@@ -260,7 +274,11 @@ export function OrderEditPage() {
 
           <Card className="p-6">
             <h3 className="mb-4">Shipping Address</h3>
-            <p className="text-sm">{order.shippingAddress}</p>
+            <p className="text-sm">
+              {order.customerDetails.address}, {order.customerDetails.city}
+              {order.customerDetails.postalCode ? `, ${order.customerDetails.postalCode}` : ''}
+              , {order.customerDetails.country}
+            </p>
           </Card>
         </div>
       </div>

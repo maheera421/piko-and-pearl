@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Eye, Edit, Printer, Trash2, Search } from 'lucide-react';
-import { useApp } from '../../contexts/AppContext';
-import { toast } from 'sonner';
+import { Eye, Edit, Printer, Search } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -14,16 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '../ui/alert-dialog';
 
 const statusColors = {
   pending: 'bg-[#FEF3C7] text-[#92400E]',
@@ -34,22 +22,63 @@ const statusColors = {
   cancelled: 'bg-[#FEE2E2] text-[#991B1B]',
 };
 
-export function OrdersTable() {
+// Accept orders via props; loading optional
+export function OrdersTable({ orders, loading }: { orders: any[]; loading?: boolean }) {
   const navigate = useNavigate();
-  const { orders, deleteOrder } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | string) => {
+    const d = typeof date === 'string' ? new Date(date) : date;
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(date);
+    }).format(d);
   };
+
+  // Normalize incoming orders to the shape this table expects
+  const rows = useMemo(() => {
+    return (orders || []).map((o) => {
+      const customerDetails = o.customerDetails || {};
+      return {
+        id: o._id || o.id,
+        orderNumber: o.orderNumber,
+        customerName: o.customerName || customerDetails.fullName || '',
+        email: o.email || customerDetails.email || '',
+        phone: o.phone || customerDetails.phoneNumber || '',
+        date: o.date || o.createdAt,
+        status: (o.status || o.orderStatus || 'pending').toString().toLowerCase(),
+        paymentStatus:
+          (o.paymentStatusLower ||
+            (o.paymentStatus || '').toString().toLowerCase()) || 'pending',
+        total: Number(o.total || 0),
+        items: Array.isArray(o.items)
+          ? o.items.map((it: any) => ({
+              productName: it.productName,
+              quantity: it.quantity,
+              price: Number(
+                typeof it.subtotal === 'number'
+                  ? it.subtotal
+                  : (it.price || 0) * (it.quantity || 0)
+              ),
+            }))
+          : [],
+        shippingAddress:
+          o.shippingAddress ||
+          [
+            customerDetails.address,
+            customerDetails.city,
+            customerDetails.postalCode,
+            customerDetails.country,
+          ]
+            .filter(Boolean)
+            .join(', '),
+      };
+    });
+  }, [orders]);
 
   const handlePrintOrder = (order: any) => {
     // Create a print-friendly version of the order
@@ -99,14 +128,14 @@ export function OrdersTable() {
                 <tr>
                   <td>${item.productName}</td>
                   <td>${item.quantity}</td>
-                  <td>Rs.${(item.price / item.quantity).toLocaleString()}</td>
-                  <td>Rs.${item.price.toLocaleString()}</td>
+                  <td>Rs.${(Number(item.price) / (item.quantity || 1)).toLocaleString()}</td>
+                  <td>Rs.${Number(item.price).toLocaleString()}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
           <div class="total">
-            <p>Total: Rs.${order.total.toLocaleString()}</p>
+            <p>Total: Rs.${Number(order.total).toLocaleString()}</p>
           </div>
         </body>
       </html>
@@ -116,25 +145,16 @@ export function OrdersTable() {
     printWindow.print();
   };
 
-  const handleDeleteOrder = () => {
-    if (!orderToDelete) return;
-    
-    const order = orders.find(o => o.id === orderToDelete);
-    deleteOrder(orderToDelete);
-    toast.success(`Order ${order?.orderNumber} deleted successfully`);
-    setOrderToDelete(null);
-  };
-
-  // Filter orders based on search and status
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = searchQuery === '' || 
-      order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.phone.toLowerCase().includes(searchQuery.toLowerCase());
-    
+  // Filter using normalized rows
+  const filteredOrders = rows.filter(order => {
+    const q = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      q === '' ||
+      (order.orderNumber || '').toLowerCase().includes(q) ||
+      (order.customerName || '').toLowerCase().includes(q) ||
+      (order.email || '').toLowerCase().includes(q) ||
+      (order.phone || '').toLowerCase().includes(q);
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    
     return matchesSearch && matchesStatus;
   });
 
@@ -188,120 +208,90 @@ export function OrdersTable() {
               </tr>
             </thead>
             <tbody>
-              {filteredOrders.length === 0 ? (
+              {(!filteredOrders || filteredOrders.length === 0) ? (
                 <tr>
                   <td colSpan={8} className="py-8 text-center text-muted-foreground">
-                    No orders found matching your criteria
+                    {loading ? 'Loading orders...' : 'No orders found matching your criteria'}
                   </td>
                 </tr>
               ) : (
                 filteredOrders.map((order, index) => (
-                <tr
-                  key={order.id}
-                  className={`border-b border-border hover:bg-muted/50 transition-colors ${
-                    index % 2 === 0 ? 'bg-card' : 'bg-muted/20'
-                  }`}
-                >
-                  <td className="py-3 px-4">
-                    <span className="font-medium">{order.orderNumber}</span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div>
-                      <div className="font-medium">{order.customerName}</div>
-                      <div className="text-xs text-muted-foreground">{order.phone}</div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-sm">{order.email}</td>
-                  <td className="py-3 px-4 text-sm text-muted-foreground">
-                    {formatDate(order.date)}
-                  </td>
-                  <td className="py-3 px-4">
-                    <Badge className={statusColors[order.status]}>
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                    </Badge>
-                  </td>
-                  <td className="py-3 px-4">
-                    <Badge
-                      className={
-                        order.paymentStatus === 'paid'
-                          ? 'bg-[#E6FFFA] text-[#047857]'
-                          : order.paymentStatus === 'pending'
-                          ? 'bg-[#FEF3C7] text-[#92400E]'
-                          : 'bg-[#FEE2E2] text-[#991B1B]'
-                      }
-                    >
-                      {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
-                    </Badge>
-                  </td>
-                  <td className="py-3 px-4 font-semibold">
-                    Rs.{order.total.toLocaleString()}
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-1">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8"
-                        onClick={() => navigate(`/orders/view/${order.id}`)}
+                  <tr
+                    key={order.id}
+                    className={`border-b border-border hover:bg-muted/50 transition-colors ${
+                      index % 2 === 0 ? 'bg-card' : 'bg-muted/20'
+                    }`}
+                  >
+                    <td className="py-3 px-4">
+                      <span className="font-medium">{order.orderNumber}</span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div>
+                        <div className="font-medium">{order.customerName}</div>
+                        <div className="text-xs text-muted-foreground">{order.phone}</div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-sm">{order.email}</td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground">
+                      {formatDate(order.date)}
+                    </td>
+                    <td className="py-3 px-4">
+                      <Badge className={statusColors[order.status] || statusColors.pending}>
+                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      </Badge>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Badge
+                        className={
+                          order.paymentStatus === 'paid'
+                            ? 'bg-[#E6FFFA] text-[#047857]'
+                            : order.paymentStatus === 'pending'
+                            ? 'bg-[#FEF3C7] text-[#92400E]'
+                            : 'bg-[#FEE2E2] text-[#991B1B]'
+                        }
                       >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8"
-                        onClick={() => navigate(`/orders/edit/${order.id}`)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8"
-                        onClick={() => handlePrintOrder(order)}
-                        title="Print Order"
-                      >
-                        <Printer className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => setOrderToDelete(order.id)}
-                        title="Delete Order"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              )))}
+                        {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                      </Badge>
+                    </td>
+                    <td className="py-3 px-4 font-semibold">
+                      Rs.{Number(order.total).toLocaleString()}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => navigate(`/orders/view/${order.id}`)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => navigate(`/orders/edit/${order.id}`)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handlePrintOrder(order)}
+                          title="Print Order"
+                        >
+                          <Printer className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </Card>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!orderToDelete} onOpenChange={(open) => !open && setOrderToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Order</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete order {orders.find(o => o.id === orderToDelete)?.orderNumber}? 
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteOrder}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

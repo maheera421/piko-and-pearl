@@ -13,6 +13,7 @@ import { ArrowLeft, CreditCard, Truck, MapPin, Phone, Mail, ShoppingBag, Lock } 
 import { useCart } from "../CartContext";
 import { useAuth } from "../AuthContext";
 import { toast } from "sonner";
+import { CreateOrderPayload } from "../../types/order";
 
 interface CheckoutPageProps {
   onNavigate: (page: string) => void;
@@ -33,7 +34,7 @@ const COUNTRIES = [
 
 export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
   const { isAuthenticated, user } = useAuth();
-  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [paymentMethod, setPaymentMethod] = useState("card"); // card -> Online, cod -> COD
   const [shippingInfo, setShippingInfo] = useState({
     fullName: "",
     email: "",
@@ -45,8 +46,34 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
   });
 
   const { items: cartItems, getTotalPrice, clearCart } = useCart();
+  
+    // API helpers
+  const requestJson = async (url: string, opts: RequestInit) => {
+    const res = await fetch(url, opts);
+    const text = await res.text();
+    const isHtml = typeof text === 'string' && text.trim().startsWith('<!DOCTYPE html');
+    let json: any = null;
+    try {
+      json = !isHtml && text ? JSON.parse(text) : null;
+    } catch {
+      json = null;
+    }
+    return { res, text, json, isHtml };
+  };
 
-  // Redirect to profile page if not authenticated
+  const tryEndpoints = async (path: string, opts: RequestInit) => {
+    const baseApi = import.meta.env.VITE_API_BASE || '';
+    const bases = [baseApi.replace(/\/+$/, ''), 'http://localhost:5000', 'http://127.0.0.1:5000'];
+    for (const base of bases) {
+      try {
+        const { res, text, json, isHtml } = await requestJson(`${base}${path}`, opts);
+        if (isHtml || res.status === 404) continue;
+        return { res, text, json };
+      } catch {}
+    }
+    throw new Error('All endpoints failed');
+  };
+
   useEffect(() => {
     if (!isAuthenticated) {
       toast.error("Please sign in to continue with checkout");
@@ -92,7 +119,7 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
   const shipping = 200; // Fixed shipping Rs 200
   const total = subtotal + shipping;
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate required fields
@@ -101,11 +128,85 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
       return;
     }
 
-    // Clear the cart
+    // Add customerId if available
+    let customerId: string | undefined = undefined;
+    try {
+      const customerStr = localStorage.getItem('customer');
+      if (customerStr) {
+        const customer = JSON.parse(customerStr);
+        if (customer && customer._id) customerId = String(customer._id);
+      }
+    } catch {
+      // ignore parsing error
+    }
+
+    const paymentMethodMapped = paymentMethod === 'cod' ? 'COD' : 'Online';
+    const payload: CreateOrderPayload = {
+      customerDetails: {
+        fullName: shippingInfo.fullName,
+        email: shippingInfo.email,
+        phoneNumber: shippingInfo.phone,
+        address: shippingInfo.address,
+        city: shippingInfo.city,
+        postalCode: shippingInfo.postalCode,
+        country: shippingInfo.country
+      },
+      items: cartItems.map(ci => ({
+        productName: ci.name,
+        category: ci.category,
+        quantity: ci.quantity,
+        price: ci.price
+      })),
+      paymentMethod: paymentMethodMapped,
+      total,
+      // attach customerId if present
+      // @ts-expect-error backend accepts optional customerId
+      customerId,
+    };
+
+    // Add a timeout controller to avoid hanging
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    try {
+      const result = await tryEndpoints('/api/orders/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        mode: 'cors',
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      const { res, json } = result;
+
+      if (!res.ok) {
+        const message =
+          (json && (json.message || json.error)) ||
+          `Request failed with status ${res.status}`;
+        toast.error(message);
+        console.error('Order create error:', { status: res.status, body: json });
+        return;
+      }
+
+      const orderNumber = json?.orderNumber;
+      if (orderNumber) {
+        toast.success(`Your order with order number #${orderNumber} has been placed successfully!`);
+      } else {
+        toast.success('Order placed successfully!');
+      }
+      console.log('Order created:', json);
+    } catch (err: any) {
+      clearTimeout(timeout);
+      const message =
+        err?.name === 'AbortError'
+          ? 'Request timed out. Please try again.'
+          : (err?.message || 'Network error');
+      toast.error(message);
+      console.error('Network error creating order:', err);
+      return;
+    }
     clearCart();
-    
-    // Show success message
-    toast.success("Order placed successfully! You will receive a confirmation email shortly.");
     
     // Navigate to home
     onNavigate('home');

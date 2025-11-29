@@ -33,7 +33,49 @@ export function CustomersPage() {
             break;
           }
           if (json && json.success) {
-            setCustomers(json.customers || []);
+            const fetched = json.customers || [];
+            // NEW: merge with local customerStats from OrdersPage
+            let stats: Record<string, { fullName: string; totalOrders: number; totalSpent: number; type: 'new' | 'returning' }> = {};
+            try {
+              const raw = localStorage.getItem('customerStats');
+              if (raw) stats = JSON.parse(raw) || {};
+            } catch {}
+
+            const merged = fetched.map((c: any) => {
+              const email = c.email || '';
+              const s = email ? stats[email] : undefined;
+              const totalOrders = s?.totalOrders ?? c.totalOrders ?? 0;
+              const totalSpent = s?.totalSpent ?? c.totalSpent ?? 0;
+              const type = (s?.type ?? c.type ?? (totalOrders > 1 ? 'returning' : 'new'));
+              return {
+                ...c,
+                // normalize type casing for UI badges
+                totalOrders,
+                totalSpent,
+                type: type === 'returning' ? 'Returning' : 'New',
+              };
+            });
+
+            setCustomers(merged);
+
+            // NEW: persist aggregates to backend (tries localhost, 127, same-origin)
+            const bases = ['http://localhost:5000', 'http://127.0.0.1:5000', ''];
+            for (const c of merged) {
+              const email = c.email;
+              const fullName = c.fullName;
+              if (!email) continue;
+              for (const base of bases) {
+                try {
+                  const res = await fetch(`${base}/api/orders/recompute-customer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, fullName }),
+                  });
+                  if (res.ok) break;
+                } catch {}
+              }
+            }
+
             loaded = true;
             break;
           } else {
@@ -81,40 +123,40 @@ export function CustomersPage() {
                 <tr><td colSpan={6} className="py-4 px-4 text-center">No customers found</td></tr>
               ) : (
                 customers.map((customer, index) => (
-                <tr
-                  key={customer._id || index}
-                  className={`border-b border-border hover:bg-muted/50 transition-colors ${
-                    index % 2 === 0 ? 'bg-card' : 'bg-muted/20'
-                  }`}
-                >
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white">
-                        { (customer.fullName || '?').charAt(0).toUpperCase() }
+                  <tr
+                    key={customer._id || index}
+                    className={`border-b border-border hover:bg-muted/50 transition-colors ${
+                      index % 2 === 0 ? 'bg-card' : 'bg-muted/20'
+                    }`}
+                  >
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white">
+                          { (customer.fullName || '?').charAt(0).toUpperCase() }
+                        </div>
+                        <div className="font-medium">{customer.fullName}</div>
                       </div>
-                      <div className="font-medium">{customer.fullName}</div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-sm">{customer.email}</td>
-                  <td className="py-3 px-4">
-                    <Badge className="bg-accent text-accent-foreground">
-                      {customer.totalOrders ?? 0}
-                    </Badge>
-                  </td>
-                  <td className="py-3 px-4 font-semibold">
-                    ₨{(customer.totalSpent ?? 0).toLocaleString()}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-muted-foreground">
-                    {customer.memberSince ? new Date(customer.memberSince).toLocaleDateString() : '-'}
-                  </td>
-                  <td className="py-3 px-4">
-                    <Badge className={customer.type === 'New' ? 'bg-[#DBEAFE] text-[#1E40AF]' : 'bg-[#E6FFFA] text-[#047857]'}
-                    >
-                      {customer.type ?? (customer.totalOrders === 0 ? 'New' : 'Returning')}
-                    </Badge>
-                  </td>
-                </tr>
-              )))}
+                    </td>
+                    <td className="py-3 px-4 text-sm">{customer.email}</td>
+                    <td className="py-3 px-4">
+                      <Badge className="bg-accent text-accent-foreground">
+                        {customer.totalOrders ?? 0}
+                      </Badge>
+                    </td>
+                    <td className="py-3 px-4 font-semibold">
+                      ₨{(customer.totalSpent ?? 0).toLocaleString()}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground">
+                      {customer.memberSince ? new Date(customer.memberSince).toLocaleDateString() : '-'}
+                    </td>
+                    <td className="py-3 px-4">
+                      <Badge className={customer.type === 'New' ? 'bg-[#DBEAFE] text-[#1E40AF]' : 'bg-[#E6FFFA] text-[#047857]'}
+                      >
+                        {customer.type ?? ((customer.totalOrders ?? 0) > 1 ? 'Returning' : 'New')}
+                      </Badge>
+                    </td>
+                  </tr>
+                )))}
             </tbody>
           </table>
         </div>
