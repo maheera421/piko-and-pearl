@@ -100,6 +100,35 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
     toast.success("Profile photo removed");
   };
 
+  const requestJson = async (url: string, opts: RequestInit) => {
+    const res = await fetch(url, opts);
+    const text = await res.text();
+    // Detect HTML error page from dev servers
+    const isHtml = typeof text === 'string' && text.trim().startsWith('<!DOCTYPE html');
+    const json = !isHtml && text ? JSON.parse(text) : null;
+    return { res, text, json, isHtml };
+  };
+
+  const tryEndpoints = async (path: string, opts: RequestInit) => {
+    // Try same-origin first, then localhost:5000, then 127.0.0.1
+    const bases = ['', 'http://localhost:5000', 'http://127.0.0.1:5000'];
+    for (const base of bases) {
+      try {
+        const { res, text, json, isHtml } = await requestJson(`${base}${path}`, opts);
+        // If we got an HTML page (like "Cannot POST ...") or a 404 from dev server, continue to next base
+        if (isHtml || res.status === 404) {
+          console.warn(`Request to ${base || 'same-origin'} returned HTML or 404, trying next base.`);
+          continue;
+        }
+        return { res, text, json };
+      } catch (err) {
+        console.warn(`Request to ${base || 'same-origin'} failed:`, err);
+        // try next
+      }
+    }
+    throw new Error('All endpoints failed');
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.email || !formData.password) {
@@ -109,11 +138,34 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
 
     setIsLoading(true);
     try {
-      await login(formData.email, formData.password);
+      const opts: RequestInit = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, password: formData.password })
+      };
+      const { res, json, text } = await tryEndpoints('/api/customers/signin', opts);
+      if (!res.ok) {
+        const message = json?.message || text || `Signin failed (${res.status})`;
+        toast.error(message);
+        return;
+      }
+      if (!json || !json.success) {
+        toast.error(json?.message || 'Invalid email or password');
+        return;
+      }
+
+      // persist token and customer
+      if (json.token) localStorage.setItem('customer_token', json.token);
+      if (json.customer) localStorage.setItem('customer', JSON.stringify(json.customer));
+
+      try { await login?.(formData.email, formData.password); } catch { /* ignore */ }
+
       toast.success("Welcome back!");
       setFormData({ email: '', password: '', name: '', confirmPassword: '' });
-    } catch (error) {
-      toast.error("Login failed. Please try again.");
+      try { onNavigate('account'); } catch { window.location.reload(); }
+    } catch (error: any) {
+      console.error('signin error', error);
+      toast.error("Signin failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -125,23 +177,75 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
       toast.error("Please fill in all fields");
       return;
     }
-
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
-
     if (formData.password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
     }
 
     setIsLoading(true);
+    const payload = {
+      fullName: formData.name,
+      email: formData.email,
+      password: formData.password,
+      confirmPassword: formData.confirmPassword
+    };
+    const opts: RequestInit = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    };
+
     try {
-      await signup(formData.email, formData.password, formData.name);
-      toast.success("Account created successfully! Welcome to Piko & Pearl!");
+      const { res, json, text } = await tryEndpoints('/api/customers/signup', opts);
+      if (!res.ok) {
+        const message = json?.message || text || `Signup failed (${res.status})`;
+        toast.error(message);
+        return;
+      }
+      if (!json || !json.success) {
+        toast.error(json?.message || 'Signup failed. Please try again.');
+        return;
+      }
+
+      // If backend gave token use it, otherwise attempt signin
+      if (json.token) {
+        localStorage.setItem('customer_token', json.token);
+      } else {
+        // Attempt immediate signin (use same tryEndpoints to respect fallback)
+        try {
+          const signinOpts: RequestInit = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: formData.email, password: formData.password })
+          };
+          const signinRes = await tryEndpoints('/api/customers/signin', signinOpts);
+          const signinJson = signinRes.json;
+          if (signinRes.res.ok && signinJson?.success && signinJson.token) {
+            localStorage.setItem('customer_token', signinJson.token);
+            json.customer = signinJson.customer || json.customer;
+          } else {
+            console.warn('Auto-signin after signup failed', signinJson ?? signinRes.text);
+          }
+        } catch (err) {
+          console.warn('Auto-signin error', err);
+        }
+      }
+
+      if (json.customer) {
+        localStorage.setItem('customer', JSON.stringify(json.customer));
+      }
+
+      try { await login?.(formData.email, formData.password); } catch { /* ignore */ }
+
+      toast.success("Account created successfully!");
       setFormData({ email: '', password: '', name: '', confirmPassword: '' });
-    } catch (error) {
+      try { onNavigate('account'); } catch { window.location.reload(); }
+    } catch (error: any) {
+      console.error('signup fetch error', error);
       toast.error("Signup failed. Please try again.");
     } finally {
       setIsLoading(false);
@@ -231,7 +335,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                             type="email"
                             required
                             value={formData.email}
-                            onChange={(e) => setFormData({...formData, email: e.target.value})}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, email: e.target.value})}
                             placeholder="your@email.com"
                             className="pl-10"
                           />
@@ -245,7 +349,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                             type="password"
                             required
                             value={formData.password}
-                            onChange={(e) => setFormData({...formData, password: e.target.value})}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, password: e.target.value})}
                             placeholder="Enter your password"
                             className="pl-10"
                           />
@@ -277,7 +381,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                             type="text"
                             required
                             value={formData.name}
-                            onChange={(e) => setFormData({...formData, name: e.target.value})}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, name: e.target.value})}
                             placeholder="Your full name"
                             className="pl-10"
                           />
@@ -291,7 +395,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                             type="email"
                             required
                             value={formData.email}
-                            onChange={(e) => setFormData({...formData, email: e.target.value})}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, email: e.target.value})}
                             placeholder="your@email.com"
                             className="pl-10"
                           />
@@ -305,7 +409,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                             type="password"
                             required
                             value={formData.password}
-                            onChange={(e) => setFormData({...formData, password: e.target.value})}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, password: e.target.value})}
                             placeholder="Create a password (min 6 characters)"
                             className="pl-10"
                           />
@@ -319,7 +423,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                             type="password"
                             required
                             value={formData.confirmPassword}
-                            onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, confirmPassword: e.target.value})}
                             placeholder="Confirm your password"
                             className="pl-10"
                           />
@@ -442,7 +546,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                     <Label>Full Name *</Label>
                     <Input
                       value={profileData.name}
-                      onChange={(e) => setProfileData({...profileData, name: e.target.value})}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProfileData({...profileData, name: e.target.value})}
                       className="mt-2"
                       required
                     />
@@ -453,7 +557,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                     <Input
                       type="email"
                       value={profileData.email}
-                      onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProfileData({...profileData, email: e.target.value})}
                       className="mt-2"
                       required
                     />
@@ -468,7 +572,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                         <Input
                           type="password"
                           value={profileData.currentPassword}
-                          onChange={(e) => setProfileData({...profileData, currentPassword: e.target.value})}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProfileData({...profileData, currentPassword: e.target.value})}
                           className="mt-2"
                           placeholder="Enter current password"
                         />
@@ -479,7 +583,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                         <Input
                           type="password"
                           value={profileData.newPassword}
-                          onChange={(e) => setProfileData({...profileData, newPassword: e.target.value})}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProfileData({...profileData, newPassword: e.target.value})}
                           className="mt-2"
                           placeholder="Enter new password (min 6 characters)"
                         />
@@ -490,7 +594,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                         <Input
                           type="password"
                           value={profileData.confirmPassword}
-                          onChange={(e) => setProfileData({...profileData, confirmPassword: e.target.value})}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProfileData({...profileData, confirmPassword: e.target.value})}
                           className="mt-2"
                           placeholder="Confirm new password"
                         />
