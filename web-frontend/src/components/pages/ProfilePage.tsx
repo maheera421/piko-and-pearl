@@ -27,8 +27,8 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
 
   // Profile form data
   const [profileData, setProfileData] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
+    name: "",
+    email: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: ""
@@ -51,16 +51,39 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
     }
   }, []);
 
-  // Update profile data when user changes
+  // Update profile data when user changes - use actual fullName from customer model
   useEffect(() => {
-    if (user) {
+    // Try to get customer data from localStorage (set during login/signup)
+    const customerData = localStorage.getItem('customer');
+    let fullName = '';
+    let email = '';
+    
+    if (customerData) {
+      try {
+        const customer = JSON.parse(customerData);
+        fullName = customer.fullName || '';
+        email = customer.email || '';
+      } catch (e) {
+        console.warn('Failed to parse customer data', e);
+      }
+    }
+    
+    // Fallback to user from AuthContext if customer data not available
+    if (!fullName && user?.name) {
+      fullName = user.name;
+    }
+    if (!email && user?.email) {
+      email = user.email;
+    }
+
+    if (fullName || email) {
       setProfileData(prev => ({
         ...prev,
-        name: user.name,
-        email: user.email
+        name: fullName,
+        email: email
       }));
     }
-  }, [user]);
+  }, [user, isAuthenticated]);
 
   const toggleDarkMode = () => {
     const newDarkMode = !isDarkMode;

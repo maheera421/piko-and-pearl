@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import { Input } from "../ui/input";
 import { Separator } from "../ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
@@ -14,7 +13,6 @@ interface CartPageProps {
 }
 
 export function CartPage({ onNavigate }: CartPageProps) {
-  const [paymentMethod, setPaymentMethod] = useState("credit");
   const { items: cartItems, updateQuantity: updateCartQuantity, removeItem: removeCartItem, getTotalPrice, clearCart } = useCart();
 
   const updateQuantity = (id: string, newQuantity: number) => {
@@ -30,9 +28,8 @@ export function CartPage({ onNavigate }: CartPageProps) {
   };
 
   const subtotal = getTotalPrice();
-  const shipping = subtotal > 3000 ? 0 : 500; // Free shipping over Rs 3,000, otherwise Rs 500
-  const tax = subtotal * 0.17; // 17% GST in Pakistan
-  const total = subtotal + shipping + tax;
+  const shipping = 200; // Fixed shipping Rs 200
+  const total = subtotal + shipping;
 
   if (cartItems.length === 0) {
     return (
@@ -166,12 +163,7 @@ export function CartPage({ onNavigate }: CartPageProps) {
                   
                   <div className="flex justify-between">
                     <span>Shipping</span>
-                    <span>{shipping === 0 ? 'Free' : `Rs ${shipping.toFixed(0)}`}</span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span>Tax</span>
-                    <span>Rs {tax.toFixed(0)}</span>
+                    <span>Rs {shipping}</span>
                   </div>
                   
                   <Separator />
@@ -180,21 +172,6 @@ export function CartPage({ onNavigate }: CartPageProps) {
                     <span>Total</span>
                     <span>Rs {total.toFixed(0)}</span>
                   </div>
-                </div>
-
-                {/* Payment Method */}
-                <div className="mt-6">
-                  <label className="text-sm font-medium mb-3 block">Payment Method</label>
-                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="credit">Credit/Debit Card</SelectItem>
-                      <SelectItem value="mastercard">Mastercard</SelectItem>
-                      <SelectItem value="cod">Cash on Delivery</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 <Button 

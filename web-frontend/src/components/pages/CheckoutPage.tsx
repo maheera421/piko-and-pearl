@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
 import { Badge } from "../ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 import { ArrowLeft, CreditCard, Truck, MapPin, Phone, Mail, ShoppingBag, Lock } from "lucide-react";
 import { useCart } from "../CartContext";
@@ -16,6 +17,19 @@ import { toast } from "sonner";
 interface CheckoutPageProps {
   onNavigate: (page: string) => void;
 }
+
+const COUNTRIES = [
+  "Pakistan",
+  "UAE",
+  "Saudi Arabia",
+  "UK",
+  "USA",
+  "Canada",
+  "Australia",
+  "India",
+  "Germany",
+  "France"
+];
 
 export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
   const { isAuthenticated, user } = useAuth();
@@ -40,21 +54,43 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
     }
   }, [isAuthenticated, onNavigate]);
 
-  // Pre-fill form with user data if authenticated
+  // Pre-fill form with user data if authenticated - use actual fullName from customer model
   useEffect(() => {
-    if (user && isAuthenticated) {
+    if (isAuthenticated) {
+      // Try to get customer data from localStorage (set during login/signup)
+      const customerData = localStorage.getItem('customer');
+      let fullName = '';
+      let email = '';
+      
+      if (customerData) {
+        try {
+          const customer = JSON.parse(customerData);
+          fullName = customer.fullName || '';
+          email = customer.email || '';
+        } catch (e) {
+          console.warn('Failed to parse customer data', e);
+        }
+      }
+      
+      // Fallback to user from AuthContext if customer data not available
+      if (!fullName && user?.name) {
+        fullName = user.name;
+      }
+      if (!email && user?.email) {
+        email = user.email;
+      }
+
       setShippingInfo(prev => ({
         ...prev,
-        fullName: user.name,
-        email: user.email
+        fullName,
+        email
       }));
     }
   }, [user, isAuthenticated]);
 
   const subtotal = getTotalPrice();
-  const shipping = subtotal > 15000 ? 0 : 500; // Free shipping over Rs 15,000, otherwise Rs 500
-  const tax = subtotal * 0.17; // 17% GST in Pakistan
-  const total = subtotal + shipping + tax;
+  const shipping = 200; // Fixed shipping Rs 200
+  const total = subtotal + shipping;
 
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -211,12 +247,22 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="country">Country</Label>
-                    <Input
-                      id="country"
-                      value={shippingInfo.country}
-                      disabled
-                    />
+                    <Label htmlFor="country">Country *</Label>
+                    <Select 
+                      value={shippingInfo.country} 
+                      onValueChange={(value) => setShippingInfo({...shippingInfo, country: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COUNTRIES.map((country) => (
+                          <SelectItem key={country} value={country}>
+                            {country}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </CardContent>
@@ -327,31 +373,21 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
 
                 <Separator />
 
-                {/* Order Totals */}
+                {/* Order Totals - Tax removed */}
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span>Subtotal ({cartItems.length} items)</span>
+                    <span>Subtotal </span>
                     <span>Rs {subtotal.toFixed(0)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
-                    <span>{shipping === 0 ? 'Free' : `Rs ${shipping.toFixed(0)}`}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Tax (17%)</span>
-                    <span>Rs {tax.toFixed(0)}</span>
+                    <span>Rs {shipping}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between font-semibold text-lg">
                     <span>Total</span>
                     <span>Rs {total.toFixed(0)}</span>
                   </div>
-                  
-                  {subtotal > 15000 && (
-                    <div className="text-sm text-green-600 font-medium">
-                      🎉 You saved Rs {shipping === 0 ? '500' : '0'} on shipping!
-                    </div>
-                  )}
                 </div>
 
                 {/* Shipping Info */}
@@ -373,10 +409,6 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                 >
                   Place Order - Rs {total.toFixed(0)}
                 </Button>
-
-                <p className="text-xs text-muted-foreground text-center">
-                  By placing this order, you agree to our Terms of Service and Privacy Policy
-                </p>
               </CardContent>
             </Card>
           </div>
