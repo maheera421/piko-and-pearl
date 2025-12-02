@@ -8,7 +8,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Switch } from '../components/ui/switch';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, WandSparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { useApp } from '../contexts/AppContext';
 import {
@@ -45,6 +45,7 @@ export function AddProductPage() {
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [showValidationDialog, setShowValidationDialog] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -168,6 +169,56 @@ export function AddProductPage() {
     }
   };
 
+  const handleAiFill = async () => {
+    if (!canUseAi || isAiLoading) return;
+    setIsAiLoading(true);
+    try {
+      const res = await fetch('http://localhost:5000/api/generateProductContent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productName: formData.name,
+          categoryName: formData.category,
+          keywords: formData.keywords,
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to generate content.');
+      }
+
+      const data: GenerateProductContentResponse = await res.json();
+
+      setFormData(prev => ({
+        ...prev,
+        description: data.description || prev.description,
+        metaTitle: data.metaTitle || prev.metaTitle,
+        metaDescription: data.metaDescription || prev.metaDescription,
+        keywords: data.keywords || prev.keywords,
+      }));
+
+      toast.success('AI-generated content added.');
+    } catch (err: any) {
+      toast.error(err?.message || 'AI generation failed.');
+      console.error('AI generation error:', err);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  const canUseAi =
+    formData.name.trim().length > 0 &&
+    formData.category.trim().length > 0 &&
+    formData.keywords.trim().length > 0;
+
+  type GenerateProductContentResponse = {
+    description: string;
+    metaTitle: string;
+    metaDescription: string;
+    keywords: string;
+  };
+
   const formattedPrice = formData.price ? Number(formData.price).toLocaleString() : '0';
   const formattedPreviousPrice = formData.previousPrice ? Number(formData.previousPrice).toLocaleString() : null;
 
@@ -187,6 +238,30 @@ export function AddProductPage() {
           <p className="text-muted-foreground mt-1">
             Create a new product for your store
           </p>
+        </div>
+        <div className="ml-auto">
+          <Button
+            type="button"
+            onClick={handleAiFill}
+            disabled={!canUseAi || isAiLoading}
+            className={
+              `${(!canUseAi || isAiLoading)
+                ? 'bg-muted text-muted-foreground cursor-not-allowed hover:bg-muted'
+                : '!bg-purple-600 hover:!bg-purple-700 !text-white shadow-md shadow-purple-500/30 focus-visible:ring-2 focus-visible:ring-purple-500'} whitespace-nowrap transition-colors`
+            }
+          >
+            {isAiLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Filling with AI...
+              </>
+            ) : (
+              <>
+                <WandSparkles className="h-4 w-4 mr-2" />
+                Fill with AI
+              </>
+            )}
+          </Button>
         </div>
       </div>
 

@@ -2,9 +2,15 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // import mongoose from 'mongoose';
-import app from './app'; // adjust if your Express app entry is different
+// Removed conflicting import:
+// import app from './app'; // adjust if your Express app entry is different
 import config from './config/config';
 import connectDB from './config/db';
+import express from 'express';
+import cors from 'cors';
+import generateProductContentRouter from './routes/generateProductContent';
+
+const app = express();
 
 const start = async () => {
   if (!config.MONGODB_URI) {
@@ -17,6 +23,11 @@ const start = async () => {
     // await mongoose.connect(config.MONGODB_URI);
 
     await connectDB();
+
+    app.use(cors());
+    app.use(express.json());
+
+    app.use('/api/generateProductContent', generateProductContentRouter);
 
     const server = app.listen(config.port, () => {
       console.log(`Server running on port ${config.port}`);
