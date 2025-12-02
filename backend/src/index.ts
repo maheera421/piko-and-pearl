@@ -1,16 +1,11 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-// import mongoose from 'mongoose';
-// Removed conflicting import:
-// import app from './app'; // adjust if your Express app entry is different
+import app from './app'; // <- use the existing app with all routes
 import config from './config/config';
 import connectDB from './config/db';
-import express from 'express';
-import cors from 'cors';
-import generateProductContentRouter from './routes/generateProductContent';
 
-const app = express();
+import generateProductContentRouter from './routes/generateProductContent';
 
 const start = async () => {
   if (!config.MONGODB_URI) {
@@ -19,25 +14,19 @@ const start = async () => {
   }
 
   try {
-    // Removed deprecated/unsupported options to satisfy current Mongoose types
-    // await mongoose.connect(config.MONGODB_URI);
-
     await connectDB();
 
-    app.use(cors());
-    app.use(express.json());
-
+    // Mount AI route onto the existing app
     app.use('/api/generateProductContent', generateProductContentRouter);
 
     const server = app.listen(config.port, () => {
       console.log(`Server running on port ${config.port}`);
     });
 
-    // handle shutdown
+    // Graceful shutdown
     const shutdown = async () => {
       console.log('Shutting down server...');
       server.close();
-      // await mongoose.disconnect();
       process.exit(0);
     };
     process.on('SIGINT', shutdown);
