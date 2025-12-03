@@ -1,5 +1,5 @@
 import express from 'express';
-import fetch from 'node-fetch';
+import fetch from 'cross-fetch'; // <-- cross-fetch works in CommonJS & ESM
 
 const router = express.Router();
 
@@ -16,7 +16,7 @@ type GenerateResponse = {
   keywords: string;
 };
 
-// Add a type for OpenRouter response
+// Type for OpenRouter response
 type OpenRouterChatResponse = {
   choices?: Array<{
     message?: {
@@ -24,20 +24,16 @@ type OpenRouterChatResponse = {
       content?: string;
     };
   }>;
-
 };
 
 router.post('/', async (req: express.Request, res: express.Response) => {
   const { productName, categoryName, keywords } = req.body as GenerateRequestBody;
 
-  if (!productName || !categoryName || !keywords) {
+  if (!productName || !categoryName || !keywords)
     return res.status(400).json({ error: 'productName, categoryName, and keywords are required.' });
-  }
 
   const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'OPENROUTER_API_KEY not configured.' });
-  }
+  if (!apiKey) return res.status(500).json({ error: 'OPENROUTER_API_KEY not configured.' });
 
   const prompt = `
 You are an e-commerce SEO assistant.
@@ -79,13 +75,10 @@ Do not include markdown or commentary.
       return res.status(502).json({ error: `OpenRouter error: ${text}` });
     }
 
-    // Cast JSON to our response type
     const json = (await resp.json()) as OpenRouterChatResponse;
     const content = json?.choices?.[0]?.message?.content;
 
-    if (!content || typeof content !== 'string') {
-      return res.status(500).json({ error: 'Empty AI response.' });
-    }
+    if (!content || typeof content !== 'string') return res.status(500).json({ error: 'Empty AI response.' });
 
     let parsed: {
       description?: string;
@@ -97,21 +90,16 @@ Do not include markdown or commentary.
     try {
       parsed = JSON.parse(content);
     } catch {
-      // Attempt to extract JSON blob if model added extra text
       const match = content.match(/\{[\s\S]*\}/);
-      if (match) {
-        parsed = JSON.parse(match[0]);
-      }
+      if (match) parsed = JSON.parse(match[0]);
     }
 
-    if (!parsed || !parsed.description || !parsed.metaTitle || !parsed.metaDescription) {
+    if (!parsed || !parsed.description || !parsed.metaTitle || !parsed.metaDescription)
       return res.status(500).json({ error: 'Invalid AI response.' });
-    }
 
-    const suggested =
-      Array.isArray(parsed.suggestedKeywords)
-        ? parsed.suggestedKeywords.join(', ')
-        : (parsed.suggestedKeywords ?? '');
+    const suggested = Array.isArray(parsed.suggestedKeywords)
+      ? parsed.suggestedKeywords.join(', ')
+      : parsed.suggestedKeywords ?? '';
 
     const combinedKeywords = [keywords, suggested]
       .filter(Boolean)
