@@ -14,6 +14,7 @@ import { useCart } from "../CartContext";
 import { useAuth } from "../AuthContext";
 import { toast } from "sonner";
 import { CreateOrderPayload } from "../../types/order";
+import { loadStripe } from "@stripe/stripe-js";
 
 interface CheckoutPageProps {
   onNavigate: (page: string) => void;
@@ -34,7 +35,7 @@ const COUNTRIES = [
 
 export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
   const { isAuthenticated, user } = useAuth();
-  const [paymentMethod, setPaymentMethod] = useState("card"); // card -> Online, cod -> COD
+  const [paymentMethod, setPaymentMethod] = useState("card"); // card -> Online, cod -> COD, stripe -> Stripe Checkout
   const [shippingInfo, setShippingInfo] = useState({
     fullName: "",
     email: "",
@@ -212,6 +213,95 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
     onNavigate('home');
   };
 
+  // Handle Stripe Checkout
+  const STRIPE_PUBLISHABLE_KEY =
+    (import.meta as any)?.env?.STRIPE_PUBLISHABLE_KEY ||
+    (import.meta as any)?.env?.VITE_STRIPE_PUBLISHABLE_KEY ||
+    (typeof process !== "undefined" ? (process.env as any)?.STRIPE_PUBLISHABLE_KEY : undefined);
+
+  const [stripeReady, setStripeReady] = useState(false);
+  useEffect(() => {
+    const key = STRIPE_PUBLISHABLE_KEY;
+    if (key) {
+      loadStripe(key).then(() => setStripeReady(true)).catch(() => setStripeReady(false));
+    }
+  }, [STRIPE_PUBLISHABLE_KEY]);
+
+  const handleStripeCheckout = async () => {
+    // Basic validation for shipping
+    if (!shippingInfo.fullName || !shippingInfo.email || !shippingInfo.phone || !shippingInfo.address || !shippingInfo.city) {
+      toast.error("Please fill in all required shipping information.");
+      return;
+    }
+    if (!STRIPE_PUBLISHABLE_KEY) {
+      toast.error("Stripe key is missing. Please configure STRIPE_PUBLISHABLE_KEY.");
+      return;
+    }
+
+    // Prepare items payload for backend
+    const lineItems = cartItems.map((ci) => ({
+      name: ci.name,
+      price: ci.price,
+      quantity: ci.quantity,
+    }));
+
+    const origin = window.location.origin;
+    // Redirect back to Checkout so we can display toast consistently, then navigate to home.
+    const frontendRedirect = `${origin}/home`; // keep redirecting to home
+    const cancel_url = `${origin}/cart`;
+
+    // Add a timeout controller to avoid hanging
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    try {
+      const result = await tryEndpoints('/api/payment/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lineItems,
+          shipping: shippingInfo,
+          success_redirect: frontendRedirect, // restored to /home
+          cancel_url,
+          customerDetails: {
+            fullName: shippingInfo.fullName,
+            email: shippingInfo.email,
+            phoneNumber: shippingInfo.phone,
+            address: shippingInfo.address,
+            city: shippingInfo.city,
+            postalCode: shippingInfo.postalCode,
+            country: shippingInfo.country
+          },
+          total,
+        }),
+        mode: 'cors',
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      const { res, json } = result;
+      if (!res.ok) {
+        const message = (json && (json.message || json.error)) || `Request failed with status ${res.status}`;
+        toast.error(message);
+        return;
+      }
+
+      const url = json?.url;
+      if (!url) {
+        toast.error("Stripe session URL missing.");
+        return;
+      }
+
+      // Redirect to Stripe Checkout
+      window.location.href = url;
+    } catch (err: any) {
+      clearTimeout(timeout);
+      const message = err?.name === 'AbortError' ? 'Request timed out. Please try again.' : (err?.message || 'Network error');
+      toast.error(message);
+      return;
+    }
+  };
+
   // Don't render if not authenticated (redirect happens in useEffect)
   if (!isAuthenticated) {
     return null;
@@ -379,11 +469,12 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
               </CardHeader>
               <CardContent>
                 <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+                  {/* Existing Mastercard option */}
                   <div className="flex items-center space-x-2 p-4 border rounded-lg">
                     <RadioGroupItem value="card" id="card" />
                     <Label htmlFor="card" className="flex-1 cursor-pointer">
                       <div className="flex items-center justify-between">
-                        <span>Credit/Debit Card</span>
+                        <span>Credit/Debit Card (Mastercard/VISA)</span>
                         <div className="flex space-x-2">
                           <div className="w-8 h-5 bg-blue-600 rounded text-white text-xs flex items-center justify-center">VISA</div>
                           <div className="w-8 h-5 bg-red-600 rounded text-white text-xs flex items-center justify-center">MC</div>
@@ -391,6 +482,8 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                       </div>
                     </Label>
                   </div>
+
+                  {/* COD option */}
                   <div className="flex items-center space-x-2 p-4 border rounded-lg">
                     <RadioGroupItem value="cod" id="cod" />
                     <Label htmlFor="cod" className="flex-1 cursor-pointer">
@@ -400,8 +493,23 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                       </div>
                     </Label>
                   </div>
+
+                  {/* Stripe Checkout option */}
+                  <div className="flex items-center space-x-2 p-4 border rounded-lg">
+                    <RadioGroupItem value="stripe" id="stripe" />
+                    <Label htmlFor="stripe" className="flex-1 cursor-pointer">
+                      <div className="flex items-center justify-between">
+                        <span>Pay with Stripe</span>
+                        <div className="flex space-x-2">
+                          <Badge variant="secondary">Checkout</Badge>
+                          {!stripeReady ? <Badge variant="outline">Initializing…</Badge> : null}
+                        </div>
+                      </div>
+                    </Label>
+                  </div>
                 </RadioGroup>
 
+                {/* Mastercard card inputs (existing) */}
                 {paymentMethod === "card" && (
                   <div className="mt-6 space-y-4">
                     <div>
@@ -437,6 +545,26 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                         placeholder="John Doe"
                         required
                       />
+                    </div>
+                  </div>
+                )}
+
+                {/* Stripe payment method selector (informational UI; actual card entry happens on Stripe-hosted page) */}
+                {paymentMethod === "stripe" && (
+                  <div className="mt-6 space-y-2">
+                    <Label>Stripe Payment Method</Label>
+                    <div className="p-4 border rounded-lg space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        You will be redirected to Stripe Checkout to securely complete your payment.
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Badge>Cards</Badge>
+                        <Badge>Wallets</Badge>
+                        <Badge>Bank Redirects</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Powered by Stripe. Publishable key: {STRIPE_PUBLISHABLE_KEY ? "configured" : "missing"}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -503,13 +631,24 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                 </div>
 
                 {/* Place Order Button */}
-                <Button 
-                  className="w-full" 
-                  size="lg"
-                  onClick={handlePlaceOrder}
-                >
-                  Place Order - Rs {total.toFixed(0)}
-                </Button>
+                {paymentMethod === "stripe" ? (
+                  <Button
+                    className="w-full"
+                    size="lg"
+                    onClick={handleStripeCheckout}
+                    disabled={!stripeReady}
+                  >
+                    Pay with Stripe - Rs {total.toFixed(0)}
+                  </Button>
+                ) : (
+                  <Button 
+                    className="w-full" 
+                    size="lg"
+                    onClick={handlePlaceOrder}
+                  >
+                    Place Order - Rs {total.toFixed(0)}
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>

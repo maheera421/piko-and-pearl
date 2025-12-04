@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 // All API routes, including customers
-app.use('/api', routes);
+app.use('/api', routes); // payment mounted inside routes/index.ts
 
 // Centralized error handler
 app.use(errorHandler);
